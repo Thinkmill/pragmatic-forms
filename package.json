@@ -1,0 +1,35 @@
+{
+  "name": "pragmatic-form",
+  "version": "1.0.0",
+  "description": "A pragmatic approach to form handling in React",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "./scripts/build.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "React",
+    "form"
+  ],
+  "author": "Michael Hazell",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "babel-preset-es2017": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^3.19.0",
+    "eslint-plugin-flowtype": "^2.33.0",
+    "eslint-plugin-react": "^7.0.1",
+    "jest": "^20.0.3",
+    "prettier": "^1.3.1",
+    "prop-types": "^15.5.10",
+    "react": "^15.5.4",
+    "rollup": "^0.41.6",
+    "rollup-plugin-babel": "^2.7.1"
+  }
+}

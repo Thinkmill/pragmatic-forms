@@ -1,0 +1,16 @@
+{
+    env: {
+        browser: true,
+        es6: true,
+    },
+    parser: "babel-eslint",
+    plugins: [
+        "react",
+        "flowtype"
+    ],
+    extends: [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:flowtype/recommended"
+    ]
+}

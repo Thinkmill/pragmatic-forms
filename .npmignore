@@ -1,0 +1,15 @@
+# Ignore all the things
+# Configs
+.babelrc
+.editorconfig
+.eslintignore
+.eslintrc
+.flowconfig
+.travis.yml
+yarn.locktests
+
+# Tests, tools and source
+tests
+example
+scripts
+src
