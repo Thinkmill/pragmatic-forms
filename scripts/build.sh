@@ -13,7 +13,7 @@ eslint .
 
 # Build the library
 babel --out-dir $OUT_LIB --ignore $SRC_EG $SRC_LIB
-# babel --out-dir $OUT_EG --source-maps inline --copy-files $SRC_EG
+babel --out-dir $OUT_EG --source-maps inline --copy-files $SRC_EG
 
 # Maybe do this:
 # https://rollupjs.org/#using-rollup-with-babel
