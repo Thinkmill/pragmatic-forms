@@ -1,182 +1,197 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from 'react';
 
-type FunctionComponent<P> = (props: P) => ?React$Element<any>;
-type ClassComponent<D, P, S> = Class<React$Component<D, P, S>>;
-
-type FormState = {
-	isValid: boolean,
-	isLoading: boolean,
-	serverError?: string,
-};
-type FormFieldState = {
-	value: any,
-	isDirty: boolean,
-	error?: string,
-};
-type FormConfig = {
-	initFields: (props: Props) => { [string]: string },
-	validate: (data: { [string]: any }) => { [string]: string },
-	submit: (data: { [string]: any }) => Promise<any>,
-	onSuccess?: (results: any) => void,
-	onError?: (reason: any) => void
-};
-
-type DefaultProps = any;
-type Props = any;
-
-type State = {
-	formState: FormState,
-	formFields: { [string]: FormFieldState },
-	formResult: any,
-};
-
-const formatFormData = (state: { [string]: FormFieldState }): { [string]: any } => {
-	return Object.keys(state).reduce((acc, key) => {
-		acc[key] = state[key].value;
+const initialiseFormFields = (initialData: { [string]: any }) => {
+	return Object.keys(initialData).reduce((acc, key) => {
+		acc[key] = {
+			value: initialData[key],
+			isDirty: false,
+			error: undefined,
+		};
 		return acc;
 	}, {});
-};
+}
 
-const updateFieldsState = (
-	state: { [string]: any },
-	errors: { [string]: any }
-): { [string]: FormFieldState } => {
+const updateFormFieldErrors = (state, errors) => {
 	return Object.keys(state).reduce((acc, key) => {
 		acc[key] = {
 			...state[key],
-			isDirty: false,
 			error: errors[key],
 		};
 		return acc;
 	}, {});
 };
 
-function hasError(errorObj): boolean {
+function hasErrors(errorObj): boolean {
 	return Object.keys(errorObj).length > 0;
 }
 
-export default function formCreate({
+const getFormFieldsValues = (state) => { 
+	return Object.keys(state).reduce((acc, key) => {
+		acc[key] = state[key].value;
+		return acc;
+	}, {});
+};
+
+const getFormFieldsErrors = (fields): { [string]: string } => {
+	return Object.keys(fields).reduce((acc, key) => {
+		if (fields[key].error) {
+			acc[key] = fields[key].error;
+		}
+		return acc;
+	}, {});
+};
+
+export function formCreate ({
 	initFields,
-	validate,
 	submit,
+	validate = () => ({}),
 	onSuccess = () => {},
-	onError = () => {}
-}: FormConfig) {
-	return function decorator<P, S>(
-		WrappedComponent: ClassComponent<void, P, S> | FunctionComponent<P>
-	): ClassComponent<DefaultProps, Props, State> {
-		return class PragForm extends Component<DefaultProps, Props, State> {
+	onError = () => {},
+}: {
+	initFields: Function,
+	validate: Function,
+	submit: Function,
+	onSuccess?: Function,
+	onError?: Function,
+}) {
+
+	return function decorator (WrappedComponent: any) {
+		return class PragForm extends Component {
+
 			state = {
 				formFields: {},
-				formState: {
-					isValid: false,
-					isLoading: false,
-					serverError: undefined
-				},
-				formResult: undefined
-			};
+				isLoading: false,
+				submitResult: undefined,
+				submitError: undefined,
+			}
+			
+			fieldProps = {}
 
 			constructor(props: any, context: any) {
 				super(props, context);
-
 				const initialData = initFields(props);
-				const initialErrors = validate(initialData);
 				this.state = {
-					formFields: updateFieldsState(initialData, initialErrors),
-					formState: {
-						isValid: !hasError(initialErrors),
-						isLoading: false,
-						serverError: undefined
-					},
-					formResult: undefined
+					formFields: initialiseFormFields(initialData, {}),
+					submitResult: undefined,
+					submitError: undefined,
+					isLoading: false,
 				};
 			}
 
-			_update(name: string, value: any): void {
+			_update = (name: string, value: any) => {
 				const { formFields } = this.state;
 				this.setState({
 					formFields: {
 						...formFields,
 						[name]: {
-							hasError: false,
+							value,
+							error: undefined,
 							isDirty: true,
-							value
-						}
-					}
+						},
+					},
+					submitError: undefined,
 				});
 			}
 
-			updateField = (name: string) => (event: Event | any) => {
-				const value = (event.target && event.target.value) || event;
-				this._update(name, value);
+			updateInput = (name: string) => (event: any) => {
+				this._update(name, event.currentTarget.value);
 			};
 
-			updateCheck = (name: string) => (event: Event | any) => {
-				const value = (event.target && event.target.checked) || event;
-				this._update(name, value);
+			updateCheck = (name: string) => (event: any) => {
+				this._update(name, event.currentTarget.checked);
 			};
 
-			handleSubmit = (event?: Event) => {
-				event && event.preventDefault && event.preventDefault();
+			formInputProps = (name: string, type: string = 'text', value: any) => {
+				if (!this.fieldProps[name]) {
+					this.fieldProps[name] = {
+						name,
+						type,
+						onChange: (type === 'checkbox') ? this.updateCheck(name) : this.updateInput(name),
+					};
+				}
 
-				const formData = formatFormData(this.state.formFields);
-				const errors = validate(formData);
-				const formFields = updateFieldsState(this.state.formFields, errors);
-
-				if (hasError(errors)) {
-					return this.setState({
-						formState: {
-							...this.state.formState,
-							isValid: false
-						}
-					});
-				} else {
-					this.setState({
-						formState: {
-							...this.state.formState,
-							isValid: true,
-							loading: true
-						},
-						formFields
-					});
-
-					return submit(formData, this.props)
-						.then(results => {
-							this.setState({
-								formState: {
-									...this.state.formState,
-									isLoading: false,
-									isSuccess: true
-								},
-								formResult: results
-							});
-							return onSuccess(results, this.props);
-						})
-						.catch(reason => {
-							this.setState({
-								formState: {
-									...this.state.formState,
-									isLoading: false,
-									serverError: reason
-								}
-							});
-							return onError(reason);
+				switch (type) {
+					case 'checkbox': 
+						return Object.assign(this.fieldProps[name], {
+							checked: this.state.formFields[name].value,
 						});
+					case 'radio':
+						return Object.assign(this.fieldProps[name], {
+							checked: this.state.formFields[name].value === value,
+							value,
+						});
+					default:
+						return Object.assign(this.fieldProps[name], {
+							value: this.state.formFields[name].value,
+						});
+				}
+			}
+
+			formFieldProps = (name: string, type: string = 'text') => {
+				const inputProps = this.formInputProps(name, type);
+				const fieldState = this.state.formFields[name];
+
+				return Object.assign(inputProps, {
+					error: fieldState.error,
+					isDirty: fieldState.isDirty,
+				});
+			}
+
+			handleSubmit = async (event: any) => {
+				event.preventDefault();
+
+				const formData = getFormFieldsValues(this.state.formFields); 
+				const errors = validate(formData);
+
+				if (hasErrors(errors)) {
+					return this.setState({
+						formFields: updateFormFieldErrors(this.state.formFields, errors),
+					});
+				}
+
+				this.setState({
+					isLoading: true,
+				});
+
+				try {
+					const result = await submit(formData, this.props);
+					this.setState({
+						isLoading: false,
+						submitResult: result,
+					});
+					return onSuccess(result, this.props);
+				} catch (reason) {
+					this.setState({
+						isLoading: false,
+						submitError: reason,
+					});
+					return onError(reason, this.props);
 				}
 			};
 
 			render() {
+				const errors = getFormFieldsErrors(this.state.formFields);
+				const formState = {
+					isLoading: this.state.isLoading,
+					hasErrors: hasErrors(errors),
+					submitError: this.state.submitError,
+					submitResult: this.state.submitResult,
+					errors,
+				};
+
 				return (
 					<WrappedComponent
 						{...this.props}
-						formState={this.state.formState}
+						formState={formState}
 						formFields={this.state.formFields}
 						formActions={{
 							onSubmit: this.handleSubmit,
-							updateField: this.updateField,
-							updateCheck: this.updateCheck
+							updateInput: this.updateInput,
+							updateCheck: this.updateCheck,
 						}}
+						formFieldProps={this.formFieldProps}
+						formInputProps={this.formInputProps}
 					/>
 				);
 			}
