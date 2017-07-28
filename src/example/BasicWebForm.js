@@ -34,6 +34,10 @@ const BasicWebForm = ({ formActions, formState, formInputProps }) => (
 				Perhaps
 			</label>
 		</div>
+		<div>
+			<label htmlFor="month">Month</label>
+			<input {...formInputProps({ name: 'month', type: 'month' })} />
+		</div>
 		<button type="submit" disabled={formState.isLoading || formState.hasErrors}>
 			Away with ye!
 		</button>
@@ -66,7 +70,7 @@ function validate(data) {
 }
 
 export default formCreate({
-	initFields: () => ({ name: '', isPirate: '' }),
+	initFields: () => ({ name: '', isPirate: '', month: '' }),
 	validate,
 	submit: data => {
 		return new Promise(resolve => {

@@ -1,6 +1,14 @@
 # Pragmatic Form
 A pragmatic approach to forms in React (Web and Native)
 
+# Goals
+- be simple
+- be declarative
+- be un-magical
+- be just react (and modern JS)
+- work with your state management library
+- work in browser and react-native
+
 Example usage:
 
 ```js
@@ -85,3 +93,14 @@ export default PragForm({
 })(MyForm);
 
 ```
+
+
+
+
+
+### Reference material and prior art
+
+Many of the ideas in here are not new. This is a list of some of the places I have taken inspiration from.
+
+https://github.com/jaredpalmer/formik
+http://redux-form.com/

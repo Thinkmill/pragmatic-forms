@@ -1,3 +1,4 @@
+# Burndown
 
 - [ ] Decide on a name
 - [ ] Review API with Jed/Kevin
@@ -13,3 +14,21 @@
 - [ ] Examples/Docs build process
 - [ ] Examples/Docs hosted on GitHub pages
 - [ ] Release v1 to npm
+
+
+---
+
+## Form elements types
+
+input [text|email|password|tel|range| ...]
+input + datalist
+input [radio]
+input [checkbox]
+
+textarea
+select [multiple]
+	- option
+	- optgroup
+
+
+button [submit|reset|button]
