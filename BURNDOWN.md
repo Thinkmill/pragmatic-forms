@@ -1,8 +1,8 @@
 # Burndown
 
 - [ ] Decide on a name
-- [ ] Review API with Jed/Kevin
-- [ ] Working example for Web (standard components)
+- [x] Review API with Jed/Kevin
+- [x] Working example for Web (standard components)
 - [ ] Working example for Web (custom components)
 - [ ] Working example for Web (nested forms) _stretch_
 - [ ] Working example for ReactNative (standard components)

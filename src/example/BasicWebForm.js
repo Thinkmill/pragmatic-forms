@@ -1,76 +1,10 @@
 // @flow
 import React from 'react';
 import PropTypes from 'prop-types';
-import { formCreate } from '../index';
+import { PragForm } from '../index';
 
-const BasicWebForm = ({ formActions, formState, formInputProps }) => (
-	<form onSubmit={formActions.onSubmit}>
-		{formState.hasErrors && (
-			<div style={{ background: '#ff8787', border: '2px solid #d21111', color: '#8a0808', padding: '1em', marginBottom: 10 }}>
-				{Object.keys(formState.errors).map(key => <div key={key}><strong>{key}:</strong> {formState.errors[key]}</div>)}
-			</div>
-		)}
-
-		<div style={{ marginBottom: 10 }}>
-			<label htmlFor="name">Pirate Name</label>
-			<input
-				id="name"
-				placeholder="eg. Blackbeard"
-				{...formInputProps({ name: 'name' })}
-			/>
-		</div>
-		<div style={{ marginBottom: 10 }}>
-			<label htmlFor="isPirate">Are ye a pirate?</label>
-			<label>
-				<input {...formInputProps({ name: 'isPirate', type: 'radio', value: 'yes' })} />
-				Ei
-			</label>
-			<label>
-				<input {...formInputProps({ name: 'isPirate', type: 'radio', value: 'no' })} />
-				Ne
-			</label>
-			<label>
-				<input {...formInputProps({ name: 'isPirate', type: 'radio', value: 'maybe' })} />
-				Perhaps
-			</label>
-		</div>
-		<div>
-			<label htmlFor="month">Month</label>
-			<input {...formInputProps({ name: 'month', type: 'month' })} />
-		</div>
-		<button type="submit" disabled={formState.isLoading || formState.hasErrors}>
-			Away with ye!
-		</button>
-	</form>
-);
-
-BasicWebForm.propTypes = {
-	formActions: PropTypes.objectOf(PropTypes.func),
-	formFields: PropTypes.object,
-	formState: PropTypes.object,
-	formInputProps: PropTypes.func,
-};
-
-function validate(data) {
-	const errors = {};
-	
-	if (!data.name) {
-		errors.name = 'All pirates must \'av a name';
-	}
-
-	if (!data.isPirate) {
-		errors.isPirate = 'We must know if ye be a pirate';
-	} else if (data.isPirate === 'no') {
-		errors.isPirate = 'Ye should endevour to become a pirate';
-	} else if (data.isPirate === 'maybe') {
-		errors.isPirate = 'Either ye be or you be not a pirate';
-	}
-
-	return errors;
-}
-
-export default formCreate({
-	initFields: () => ({ name: '', isPirate: '', month: '' }),
+const withPragForm = PragForm({
+	initFields: () => ({ name: '', isHappy: '' }),
 	validate,
 	submit: data => {
 		return new Promise(resolve => {
@@ -80,4 +14,72 @@ export default formCreate({
 			}, 1000);
 		});
 	},
-})(BasicWebForm);
+});
+
+const BasicWebForm = ({ form }) => (
+	<form onSubmit={form.actions.onSubmit}>
+		{form.state.hasErrors && (
+			<div style={{ background: '#ff8787', border: '2px solid #d21111', color: '#8a0808', padding: '1em', marginBottom: 10 }}>
+				{Object.keys(form.state.errors).map(key => <div key={key}><strong>{key}:</strong> {form.state.errors[key]}</div>)}
+			</div>
+		)}
+
+		<div style={{ marginBottom: 10 }}>
+			<label htmlFor="name">Name</label>
+			<input
+				id="name"
+				placeholder="eg. Borico Jones"
+				{...form.getInputProps({ name: 'name' })}
+			/>
+		</div>
+		<div style={{ marginBottom: 10 }}>
+			<label htmlFor="isHappy">Are you happy?</label>
+			<label>
+				<input {...form.getInputProps({ name: 'isHappy', type: 'radio', value: 'yes' })} />
+				Yes
+			</label>
+			<label>
+				<input {...form.getInputProps({ name: 'isHappy', type: 'radio', value: 'no' })} />
+				No
+			</label>
+			<label>
+				<input {...form.getInputProps({ name: 'isHappy', type: 'radio', value: 'maybe' })} />
+				Maybe
+			</label>
+		</div>
+		<div>
+			<label htmlFor="month">Month</label>
+			<input {...form.getInputProps({ name: 'month', type: 'text', value: '' })} />
+		</div>
+		<button type="submit" disabled={form.state.isLoading || form.state.hasErrors}>
+			Submit
+		</button>
+	</form>
+);
+
+BasicWebForm.propTypes = {
+	form: PropTypes.shape({
+		actions: PropTypes.objectOf(PropTypes.func),
+		fields: PropTypes.object,
+		state: PropTypes.object,
+		getInputProps: PropTypes.func,
+	}),
+};
+
+function validate(data) {
+	const errors = {};
+	
+	if (!data.name) {
+		errors.name = 'We must have a name';
+	}
+
+	if (!data.isHappy) {
+		errors.isHappy = 'Please let us know if you are happy';
+	} else if (data.isHappy !== 'yes') {
+		errors.isHappy = 'You should be happy';
+	}
+
+	return errors;
+}
+
+export default withPragForm(BasicWebForm);

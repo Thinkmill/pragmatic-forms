@@ -2,13 +2,16 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import styled, { injectGlobal } from 'styled-components';
+import JsonView from 'react-json-view'
 
 import BasicWebForm from './BasicWebForm';
 import CustomComponents from './CustomComponents';
+import MyVehicles from './MyVehicles';
 
 const forms = [
 	{ component: BasicWebForm, label: 'Basic Form' },
 	{ component: CustomComponents, label: 'Custom Form Fields' },
+	{ component: MyVehicles, label: 'Nested form' },
 ];
 
 type ButtonsProps = {
@@ -49,7 +52,7 @@ const Main = styled.div`
 
 class App extends Component {
 	state = {
-		selectedForm: 0,
+		selectedForm: 2,
 		formState: undefined,
 	}
 	
@@ -75,7 +78,7 @@ class App extends Component {
 					onFormStateChange={this._handleFormStateChange}
 				/>
 				<h3>Form state</h3>
-				<pre><code>{JSON.stringify(this.state.formState)}</code></pre>
+				<JsonView src={this.state.formState} />
 			</Main>
 		);
 	}

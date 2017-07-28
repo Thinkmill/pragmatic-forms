@@ -34,6 +34,7 @@
     "prop-types": "^15.5.10",
     "react": "^15.5.4",
     "react-dom": "^15.6.0",
+    "react-json-view": "^1.10.12",
     "styled-components": "^2.1.0",
     "webpack": "^3.0.0",
     "webpack-dev-server": "^2.4.5"
