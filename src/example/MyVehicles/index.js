@@ -16,7 +16,7 @@ import { Button, Input } from './styled';
 const withPragForm = PragForm({
 	initFields: () => ({
 		name: '',
-		vehicles: [{ make: 'BMW', model: 'M5', plate: 'BBAA9922' }]
+		vehicles: []
 	}),
 	submit: (data) => console.log(data), // eslint-disable-line no-console
 	validate: () => ({}),

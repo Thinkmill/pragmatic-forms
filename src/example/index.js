@@ -52,7 +52,7 @@ const Main = styled.div`
 
 class App extends Component {
 	state = {
-		selectedForm: 2,
+		selectedForm: 0,
 		formState: undefined,
 	}
 	
