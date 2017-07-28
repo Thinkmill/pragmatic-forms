@@ -1,88 +1,84 @@
 // @flow
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { formCreate } from '../index';
+import styled, { injectGlobal } from 'styled-components';
 
-const MyFormComponent = ({ formActions, formFields, formState, formInputProps }) => (
-	<form onSubmit={formActions.onSubmit}>
-		<div>
-			<label htmlFor="name">Pirate Name</label>
-			<input
-				id="name"
-				placeholder="eg. Blackbeard"
-				{...formInputProps('name')}
-			/>
-		</div>
-		<div>
-			<label htmlFor="isPirate">Are you a pirate?</label>
-			<label>
-				<input {...formInputProps('isPirate', 'radio', 'yes')} />
-				Yes
-			</label>
-			<label>
-				<input {...formInputProps('isPirate', 'radio', 'no')} />
-				No
-			</label>
-			<label>
-				<input {...formInputProps('isPirate', 'radio', 'maybe')} />
-				Maybe
-			</label>
-		</div>
-		<button type="submit" disabled={formState.isLoading || formState.hasErrors}>
-			Away with ye!
-		</button>
+import BasicWebForm from './BasicWebForm';
+import CustomComponents from './CustomComponents';
 
+const forms = [
+	{ component: BasicWebForm, label: 'Basic Form' },
+	{ component: CustomComponents, label: 'Custom Form Fields' },
+];
 
-		<div>
-			<div>
-				<h3>Form Fields</h3>
-				<pre><code>{JSON.stringify(formFields)}</code></pre>
-			</div>
-			<div>
-				<h3>Form state</h3>
-				<pre><code>{JSON.stringify(formState)}</code></pre>
-			</div>
-		</div>
-	</form>
+type ButtonsProps = {
+	list: [{ label: string }],
+	selectedIndex: number,
+	onSelect: (index: number) => void,
+};
+const Buttons = ({ list, selectedIndex, onSelect }: ButtonsProps) => (
+	<div>
+		{list.map((item, index) => (
+			<button
+				key={index}
+				onClick={() => onSelect(index)}
+				disabled={index === selectedIndex}
+			>
+				{item.label}
+			</button>
+		))}
+	</div>
 );
 
-MyFormComponent.propTypes = {
-	formActions: PropTypes.objectOf(PropTypes.func),
-	formFields: PropTypes.object,
-	formState: PropTypes.object,
-	formInputProps: PropTypes.func,
-};
+injectGlobal`
+	body {
+		font-family: 'Helvetica Neue', helvetica, Arial, sans-serif;
+		font-size: 16px;
+	}
+	pre {
+		overflow: auto;
+		padding: 2vw;
+		background: #efefef;
+	}
+`;
 
-function validate(data) {
-	const errors = {};
+const Main = styled.div`
+	background: #fefefe;
+	padding: 4vw;
+`
+
+class App extends Component {
+	state = {
+		selectedForm: 0,
+		formState: undefined,
+	}
 	
-	if (!data.name) {
-		errors.name = 'All pirates require a name';
+	select = (selectedForm) => {
+		this.setState({ selectedForm });
 	}
-
-	if (!data.isPirate) {
-		errors.isPirate = 'We must know if ye be a pirate';
-	} else if (data.isPirate === 'no') {
-		errors.isPirate = 'Ye should endevour to become a pirate';
-	} else if (data.isPirate === 'maybe') {
-		errors.isPirate = 'Either ye be or you be not a pirate';
+	
+	_handleFormStateChange = (formState) => {
+		this.setState({ formState });
 	}
-
-	return errors;
+	
+	render () {
+		const CurrentForm = forms[this.state.selectedForm];
+		return (
+			<Main>
+				<Buttons
+					list={forms}
+					selectedIndex={this.state.selectedForm}
+					onSelect={this.select}
+				/>
+				<h1>{CurrentForm.label}</h1>
+				<CurrentForm.component
+					onFormStateChange={this._handleFormStateChange}
+				/>
+				<h3>Form state</h3>
+				<pre><code>{JSON.stringify(this.state.formState)}</code></pre>
+			</Main>
+		);
+	}
 }
 
-const Form = formCreate({
-	initFields: () => ({ name: '', isPirate: '' }),
-	validate,
-	submit: data => {
-		return new Promise(resolve => {
-			console.log('Sending data', data); // eslint-disable-line no-console
-			setTimeout(() => {
-				resolve({ success: true });
-			}, 1000);
-		});
-	},
-})(MyFormComponent);
-
-ReactDOM.render(<Form />, document.getElementById('app'));
+ReactDOM.render(<App />, document.getElementById('app'));

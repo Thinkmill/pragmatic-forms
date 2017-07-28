@@ -1,7 +1,21 @@
 // @flow
 import React, { Component } from 'react';
 
-const initialiseFormFields = (initialData: { [string]: any }) => {
+type FieldPropOptions = {
+	name: string,
+	type?: string,
+	value?: any,
+	// parse?: ,
+	// format?: func,
+};
+
+type FieldItemState<T> = {
+	value: T,
+	isDirty: Boolean,
+	error: ?String,
+};
+
+const initialiseFormFields = <A>(initialData: { [string]: A }): { [string]: FieldItemState<A> } => {
 	return Object.keys(initialData).reduce((acc, key) => {
 		acc[key] = {
 			value: initialData[key],
@@ -12,7 +26,7 @@ const initialiseFormFields = (initialData: { [string]: any }) => {
 	}, {});
 }
 
-const updateFormFieldErrors = (state, errors) => {
+const updateFormFieldErrors = <A>(state: { [string]: FieldItemState<A> }, errors: { [string]: String }): { [string]: FieldItemState<A> } => {
 	return Object.keys(state).reduce((acc, key) => {
 		acc[key] = {
 			...state[key],
@@ -22,21 +36,21 @@ const updateFormFieldErrors = (state, errors) => {
 	}, {});
 };
 
-function hasErrors(errorObj): boolean {
+function hasErrors(errorObj: { [string]: string }): boolean {
 	return Object.keys(errorObj).length > 0;
 }
 
-const getFormFieldsValues = (state) => { 
+const getFormFieldsValues = <A>(state: { [string]: FieldItemState<A> }): { [string]: A } => { 
 	return Object.keys(state).reduce((acc, key) => {
 		acc[key] = state[key].value;
 		return acc;
 	}, {});
 };
 
-const getFormFieldsErrors = (fields): { [string]: string } => {
-	return Object.keys(fields).reduce((acc, key) => {
-		if (fields[key].error) {
-			acc[key] = fields[key].error;
+const getFormFieldsErrors = <A>(state: { [string]: FieldItemState<A> }): { [string]: string } => {
+	return Object.keys(state).reduce((acc, key) => {
+		if (state[key].error) {
+			acc[key] = state[key].error;
 		}
 		return acc;
 	}, {});
@@ -55,9 +69,12 @@ export function formCreate ({
 	onSuccess?: Function,
 	onError?: Function,
 }) {
-
 	return function decorator (WrappedComponent: any) {
 		return class PragForm extends Component {
+
+			props: {
+				onFormStateChange: Function,
+			}
 
 			state = {
 				formFields: {},
@@ -66,20 +83,38 @@ export function formCreate ({
 				submitError: undefined,
 			}
 			
+			defaultProps = {
+				onFormStateChange: () => {},
+			}
+			
 			fieldProps = {}
 
 			constructor(props: any, context: any) {
 				super(props, context);
 				const initialData = initFields(props);
 				this.state = {
-					formFields: initialiseFormFields(initialData, {}),
+					formFields: initialiseFormFields(initialData),
 					submitResult: undefined,
 					submitError: undefined,
 					isLoading: false,
 				};
 			}
+			
+			componentDidMount = () => {
+				this.props.onFormStateChange(this.state);
+			}
+			
+			setState (changes: { [string]: any }) {
+				super.setState(changes, () => {
+					this.props.onFormStateChange(this.state);
+				});
+			}
+			
+			_reportChanges = () => {
+				this.props.onFormStateChange(this.state)
+			}
 
-			_update = (name: string, value: any) => {
+			_updateField = (name: string, value: any) => {
 				const { formFields } = this.state;
 				this.setState({
 					formFields: {
@@ -95,14 +130,15 @@ export function formCreate ({
 			}
 
 			updateInput = (name: string) => (event: any) => {
-				this._update(name, event.currentTarget.value);
+				this._updateField(name, event.currentTarget.value);
 			};
 
 			updateCheck = (name: string) => (event: any) => {
-				this._update(name, event.currentTarget.checked);
+				this._updateField(name, event.currentTarget.checked);
 			};
 
-			formInputProps = (name: string, type: string = 'text', value: any) => {
+			formInputProps = (options: FieldPropOptions)  => {
+				const { name, type, value } = options;
 				if (!this.fieldProps[name]) {
 					this.fieldProps[name] = {
 						name,
@@ -128,17 +164,18 @@ export function formCreate ({
 				}
 			}
 
-			formFieldProps = (name: string, type: string = 'text') => {
-				const inputProps = this.formInputProps(name, type);
-				const fieldState = this.state.formFields[name];
+			formFieldProps = (options: FieldPropOptions) => {
+				const inputProps = this.formInputProps(options);
+				const fieldState = this.state.formFields[options.name];
 
 				return Object.assign(inputProps, {
 					error: fieldState.error,
 					isDirty: fieldState.isDirty,
+					onValueChange: (value) => this._updateField(options.name, value),
 				});
 			}
 
-			handleSubmit = async (event: any) => {
+			handleSubmit = async (event: Event) => {
 				event.preventDefault();
 
 				const formData = getFormFieldsValues(this.state.formFields); 

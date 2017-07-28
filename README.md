@@ -1,8 +1,5 @@
 # Pragmatic Form
-A pragmatic approach to forms in React
-
-- a higher order component which supports 
-
+A pragmatic approach to forms in React (Web and Native)
 
 Example usage:
 
@@ -11,7 +8,7 @@ import PragForm from 'pragmatic-form';
 
 const MyForm = ({ formState, formFields, formActions }) => (
 	<form onSubmit={formActions.onSubmit}>
-		{formState.!isValid && 
+		{!formState.isValid && 
 			<div>
 				<p style={{ color: 'red' }}>Please correct the things</p>
 			</div>
