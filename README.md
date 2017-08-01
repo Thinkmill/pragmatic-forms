@@ -5,6 +5,7 @@ A pragmatic approach to forms in React (Web and Native)
 - be simple
 - be declarative
 - be un-magical
+- be performant
 - be just react (and modern JS)
 - work with YOUR state management library
 - work in browser and react-native
