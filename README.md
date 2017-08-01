@@ -14,83 +14,56 @@ Example usage:
 ```js
 import PragForm from 'pragmatic-form';
 
-const MyForm = ({ formState, formFields, formActions }) => (
-	<form onSubmit={formActions.onSubmit}>
-		{!formState.isValid && 
+const withPragForm = PragForm({
+	initFields: (props) => ({
+		name: props.name || '',
+		agree: false,
+	}),
+	validate: ({ name, agree }, props) => {
+		const errors = {};
+		if (!name) errors.name = 'Please enter a name';
+		else if (name === props.name) {
+			errors.name = `Name must be changed to something other than ${props.name}`;
+		}
+		if (!agree) errors.agree = 'You must agree to the conditions';
+
+		return errors;
+	},
+	submit: (formData) => {
+		return fetch('/registration', {
+			method: 'POST',
+			body: JSON.stringify(formData),
+		})
+		.then(res => res.json());
+	}
+});
+
+const RegistrationForm = ({ form }) => (
+	<form onSubmit={form.actions.onSubmit}>
+		{!form.state.hasErrors && 
 			<div>
-				<p style={{ color: 'red' }}>Please correct the things</p>
+				<p style={{ color: 'red' }}>Please correct the your input</p>
 			</div>
 		}
 
 		<input
-			type="text"
-			name="name"
-			value={formFields['name'].value}
-			onChange={formActions.updateField('name')}
-			style={{
-				border: '1px solid',
-				borderColor: formFields['name'].hasError ? 'red' : 'blue',
-			}}
+			{...form.getInputProps({ name: 'name', type: 'text' })}
 		/>
 		
 		<input
-			type="checkbox"
-			name="agree"
-			checked={formState['agree'].checked}
-			onChange={formActions.updateCheck('agree')}
+			{...form.getInputProps({ name: 'agree', type: 'checkbox' })}
 		/>
 	
 		<button
 			type="submit"
-			disabled={!formState.isValid && !formState.isLoading}
+			disabled={form.state.hasErrors || form.state.isLoading}
 		>
 			Submit
 		</button>
-	
 	</form>
 );
 
-function initFields (props) {
-	const { previousName } = props;
-	return {
-		name: previousName || '',
-		agree: false,
-	};
-}
-
-function validate (data, props) {
-	const { name, agree } = data;
-	const errors = {};
-	
-	// name is required
-	if (name.trim().length === 0) {
-		errors.name = 'Please enter a name';
-	}
-	// name must be different to previous name
-	else if (name.trim().toLowerCase() === props.name.toLowerCase()) {
-		errors.name = `Name must be changed to something other than ${props.name}`;
-	}
-	
-	if (!agree) {
-		errors.agree = 'You must agree to the conditions';
-	}
-	
-	return errors;
-}
-
-function submit (formData, props) {
-	return fetch('/registration', {
-		method: 'POST',
-		body: JSON.stringify(formData),
-	})
-	.then(res => res.json());
-}
-
-export default PragForm({
-	initFields,
-	validate,
-	submit,
-})(MyForm);
+export default withPragForm(RegistrationForm);
 
 ```
 
