@@ -47,13 +47,8 @@ const RegistrationForm = ({ form }) => (
 			</div>
 		}
 
-		<input
-			{...form.getInputProps({ name: 'name', type: 'text' })}
-		/>
-		
-		<input
-			{...form.getInputProps({ name: 'agree', type: 'checkbox' })}
-		/>
+		<input {...form.getInputProps({ name: 'name', type: 'text' })} />
+		<input {...form.getInputProps({ name: 'agree', type: 'checkbox' })} />
 	
 		<button
 			type="submit"
