@@ -161,19 +161,24 @@ export function PragForm ({
 					};
 				}
 
+				const disabled = this.state.isLoading;
+
 				switch (type) {
 					case 'checkbox': 
 						return Object.assign(this.fieldProps[name], {
 							checked: this._getFieldValueWithDefault(name, checked), // This defaults to not checked based on what ...
+							disabled,
 						});
 					case 'radio':
 						return Object.assign(this.fieldProps[name], {
 							checked: this._getFieldValueWithDefault(name, value) === value,
 							value,
+							disabled,
 						});
 					default:
 						return Object.assign(this.fieldProps[name], {
 							value: this._getFieldValueWithDefault(name, value),
+							disabled,
 						});
 				}
 			}

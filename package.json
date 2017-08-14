@@ -1,10 +1,13 @@
 {
-  "name": "pragmatic-form",
+  "name": "@thinkmill/pragmatic-form",
   "version": "1.0.0",
   "description": "A pragmatic approach to form handling in React",
   "main": "lib/index.js",
+  "private": true,
   "scripts": {
     "start": "webpack-dev-server --config webpack.config.js",
+    "build:example": "webpack",
+    "build:release": "mkdir -p ./lib && babel src/index.js --out-file lib/index.js",
     "pretty": "./scripts/pretty.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -11,7 +11,7 @@ const HtmlWebpackPluginConfig = new HtmlWebpackPlugin({
 module.exports = {
 	entry: './src/example/index.js',
 	output: {
-		filename: 'bundle.js',
+		filename: 'main.js',
 		path: path.resolve(__dirname, 'dist')
 	},
 	devtool: 'inline-source-map',
