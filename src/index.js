@@ -59,7 +59,7 @@ const getFormFieldsErrors = <A>(state: { [string]: FieldItemState<A> }): { [stri
 	}, {});
 };
 
-export function PragForm ({
+export function configureForm ({
 	initFields,
 	submit,
 	validate = () => ({}),

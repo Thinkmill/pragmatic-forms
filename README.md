@@ -1,4 +1,4 @@
-# Pragmatic Form
+# Pragmatic Forms
 A pragmatic approach to forms in React (Web and Native)
 
 # Goals
@@ -13,9 +13,9 @@ A pragmatic approach to forms in React (Web and Native)
 Example usage:
 
 ```js
-import PragForm from 'pragmatic-form';
+import { configureForm } from '@thinkmill/pragmatic-forms';
 
-const withPragForm = PragForm({
+const withForm = configureForm({
 	initFields: (props) => ({
 		name: props.name || '',
 		agree: false,
@@ -59,13 +59,9 @@ const RegistrationForm = ({ form }) => (
 	</form>
 );
 
-export default withPragForm(RegistrationForm);
+export default withForm(RegistrationForm);
 
 ```
-
-
-
-
 
 ### Reference material and prior art
 
