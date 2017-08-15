@@ -5,8 +5,9 @@ A pragmatic approach to forms in React (Web and Native)
 - be simple
 - be declarative
 - be un-magical
+- be performant
 - be just react (and modern JS)
-- work with your state management library
+- work with YOUR state management library
 - work in browser and react-native
 
 Example usage:
@@ -46,13 +47,8 @@ const RegistrationForm = ({ form }) => (
 			</div>
 		}
 
-		<input
-			{...form.getInputProps({ name: 'name', type: 'text' })}
-		/>
-		
-		<input
-			{...form.getInputProps({ name: 'agree', type: 'checkbox' })}
-		/>
+		<input {...form.getInputProps({ name: 'name', type: 'text' })} />
+		<input {...form.getInputProps({ name: 'agree', type: 'checkbox' })} />
 	
 		<button
 			type="submit"
