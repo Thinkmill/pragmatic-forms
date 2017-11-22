@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { PragForm } from '../../index';
+import { configureForm } from '../../index';
 
 const commonMakes = [
 	{ value: '', label: 'Please choose' },
@@ -36,7 +36,7 @@ const defaultState = {
 	plate: '',
 };
 
-const withPragForm = PragForm({
+const withPragForm = configureForm({
 	initFields: (props) => {
 		const { value, index } = props;
 		return { ...(value[index] || defaultState) };
@@ -85,8 +85,8 @@ const VehicleForm = ({ form, onRemove }) => {
 			<ButtonsContainer>
 				<Button
 					type="button"
-					onClick={form.actions.submit}
-					disabled={form.state.isPristine}
+					onClick={form.submit}
+					disabled={form.isPristine}
 				>
 					Create / Update
 				</Button>

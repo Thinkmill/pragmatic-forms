@@ -1,10 +1,8 @@
 // @flow
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { PragForm } from '../../index';
+import { configureForm } from '../../index';
 
-// import VehicleCard from './VehicleCard';
 import VehicleForm from './VehicleForm';
 
 const Container = styled.form`
@@ -13,7 +11,7 @@ const Container = styled.form`
 
 import { Button, Input } from './styled';
 
-const withPragForm = PragForm({
+const withForm = configureForm({
 	initFields: () => ({
 		name: '',
 		vehicles: []
@@ -22,11 +20,11 @@ const withPragForm = PragForm({
 	validate: () => ({}),
 });
 
-class MyVehicles extends Component {
+type Props = {
+	form: any,
+};
 
-	static propTypes = {
-		form: PropTypes.object,
-	}
+class MyVehicles extends Component<Props> {
 
 	render () {
 		const { form } = this.props;
@@ -39,7 +37,7 @@ class MyVehicles extends Component {
 		}
 
 		return (
-			<Container onSubmit={form.actions.onSubmit}>
+			<Container onSubmit={form.onSubmit}>
 				<Input placeholder="Your name" {...form.getInputProps({ name: 'name' })} />
 				{items.map((v, index) => (
 					<VehicleForm
@@ -58,4 +56,4 @@ class MyVehicles extends Component {
 	}
 }
 
-export default withPragForm(MyVehicles);
+export default withForm(MyVehicles);

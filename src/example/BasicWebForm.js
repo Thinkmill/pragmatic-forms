@@ -1,9 +1,9 @@
 // @flow
 import React from 'react';
 import PropTypes from 'prop-types';
-import { PragForm } from '../index';
+import { configureForm } from '../index';
 
-const withPragForm = PragForm({
+const withForm = configureForm({
 	initFields: () => ({ name: '', isHappy: '' }),
 	validate,
 	submit: data => {
@@ -17,10 +17,10 @@ const withPragForm = PragForm({
 });
 
 const BasicWebForm = ({ form }) => (
-	<form onSubmit={form.actions.onSubmit}>
-		{form.state.hasErrors && (
+	<form onSubmit={form.onSubmit} onReset={form.onReset}>
+		{form.hasErrors && (
 			<div style={{ background: '#ff8787', border: '2px solid #d21111', color: '#8a0808', padding: '1em', marginBottom: 10 }}>
-				{Object.keys(form.state.errors).map(key => <div key={key}><strong>{key}:</strong> {form.state.errors[key]}</div>)}
+				{Object.keys(form.errors).map(key => <div key={key}><strong>{key}:</strong> {form.errors[key]}</div>)}
 			</div>
 		)}
 
@@ -51,8 +51,11 @@ const BasicWebForm = ({ form }) => (
 			<label htmlFor="month">Month</label>
 			<input {...form.getInputProps({ name: 'month', type: 'text', value: '' })} />
 		</div>
-		<button type="submit" disabled={form.state.isLoading || form.state.hasErrors}>
+		<button type="submit" disabled={form.isLoading || form.hasErrors}>
 			Submit
+		</button>
+		<button type="reset" disabled={form.isLoading || form.hasErrors}>
+			Reset
 		</button>
 	</form>
 );
@@ -82,4 +85,4 @@ function validate(data) {
 	return errors;
 }
 
-export default withPragForm(BasicWebForm);
+export default withForm(BasicWebForm);

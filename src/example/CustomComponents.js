@@ -1,13 +1,13 @@
 // @flow
 import React from 'react';
 import PropTypes from 'prop-types';
-import { PragForm } from '../index';
+import { configureForm } from '../index';
 import TextInput from './components/TextInput';
 
 const emailRegex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+/gi;
 
 const CustomComponents = ({ form }) => (
-	<form onSubmit={form.actions.onSubmit} noValidate>
+	<form onSubmit={form.onSubmit} noValidate>
 		<h3>Testing</h3>
 		<TextInput
 			{...form.getFieldProps({ name: 'email', type: 'email' })}
@@ -30,8 +30,10 @@ function validate (fields) {
 	return errors;
 }
 
-export default PragForm({
+export default configureForm({
 	initFields: () => ({ email: '' }),
-	submit: (values) => { console.log(values) },
+	submit: (values) => {
+		console.log(values); // eslint-disable-line no-console
+	},
 	validate,
 })(CustomComponents);

@@ -1,4 +1,5 @@
 // @flow
+// global document
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import styled, { injectGlobal } from 'styled-components';
@@ -15,7 +16,7 @@ const forms = [
 ];
 
 type ButtonsProps = {
-	list: [{ label: string }],
+	list: { label: string }[],
 	selectedIndex: number,
 	onSelect: (index: number) => void,
 };
@@ -50,20 +51,25 @@ const Main = styled.div`
 	padding: 4vw;
 `
 
-class App extends Component {
-	state = {
+type State = {
+	selectedForm: number,
+	formState: any
+};
+
+class App extends Component<any, State> {
+	state: State = {
 		selectedForm: 0,
-		formState: undefined,
+		formState: {},
 	}
-	
+
 	select = (selectedForm) => {
 		this.setState({ selectedForm });
 	}
-	
+
 	_handleFormStateChange = (formState) => {
 		this.setState({ formState });
 	}
-	
+
 	render () {
 		const CurrentForm = forms[this.state.selectedForm];
 		return (
