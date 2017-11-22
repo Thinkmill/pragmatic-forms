@@ -16,7 +16,11 @@ type FieldItemState<T> = {
 
 type Props = {
 	onFormStateChange: (formState: {[fieldName: string]: any}) => mixed
-};
+}
+
+type FormProps = {
+	[string]: any
+}
 
 type State = {
 	formFields: any,
@@ -31,10 +35,10 @@ type ErrorData = { [fieldName: string]: any }
 
 type Options = {
 	initFields: (props: any) => FormData,
-	submit: (formData: FormData, props: any) => mixed,
-	validate?: (formData: FormData, props: any) => ErrorData,
-	onSuccess?: (result: any, props: any) => mixed,
-	onError?: (result: any, props: any) => mixed,
+	submit: (formData: FormData, props: any, formProps: FormProps) => mixed,
+	validate?: (formData: FormData, props: any, formProps: FormProps) => ErrorData,
+	onSuccess?: (result: any, props: any, formProps: FormProps) => mixed,
+	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 }
 
 const initialFieldState = (value) => ({
@@ -129,9 +133,10 @@ export function configureForm ({
 				this.props.onFormStateChange(this.state);
 			}
 			
-			setState (changes: { [string]: any }) {
+			setState (changes: { [string]: any }, callback?: Function) {
 				super.setState(changes, () => {
 					this.props.onFormStateChange(this.state);
+					callback && callback();
 				});
 			}
 			
@@ -220,7 +225,7 @@ export function configureForm ({
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
 				const formData = getFormFieldsValues(this.state.formFields); 
-				const errors = options.validate(formData, this.props);
+				const errors = options.validate(formData, this.props, this.formProps());
 
 				if (objectHasKeys(errors)) {
 					return this.setState({
@@ -233,18 +238,20 @@ export function configureForm ({
 				});
 				
 				try {
-					const result = await options.submit(formData, this.props);
+					const result = await options.submit(formData, this.props, this.formProps());
 					this.setState({
 						isLoading: false,
 						submitResult: result,
-						// $FlowFixMe - flow seems to be unaware of the second argument to setState.
-					}, () => options.onSuccess(result, this.props));
+					}, () => {
+						options.onSuccess(result, this.props, this.formProps());
+					});
 				} catch (reason) {
 					this.setState({
 						isLoading: false,
 						submitError: reason,
-						// $FlowFixMe - flow seems to be unaware of the second argument to setState.
-					}, () => options.onError(reason, this.props));
+					}, () => {
+						options.onError(reason, this.props, this.formProps());
+					});
 				}
 			}
 
@@ -260,51 +267,56 @@ export function configureForm ({
 				});
 			}
 
-			render() {
+			formProps = (): FormProps => {
 				const errors = getFormFieldsErrors(this.state.formFields);
 				const hasErrors = objectHasKeys(errors);
+
+				return {
+					isLoading: this.state.isLoading,
+					isPristine: this.state.isPristine,
+					submitError: this.state.submitError,
+					submitResult: this.state.submitResult,
+					errors,
+					hasErrors,
+
+					fields: this.state.formFields,
+
+					submit: this.submit,
+					reset: this.reset,
+					updateField: this.updateField,
+
+					// Event Handlers
+					onSubmit: this.handleSubmit,
+					onReset: this.handleReset,
+
+					getInputProps: this.formInputProps,
+					getFieldProps: this.formFieldProps,
+					
+					// Old API - Depricated
+					state: {
+						isLoading: this.state.isLoading,
+						isPristine: this.state.isPristine,
+						hasErrors,
+						errors,
+						submitError: this.state.submitError,
+						submitResult: this.state.submitResult,
+					},
+					actions: {
+						submit: this.submit,
+						onSubmit: this.handleSubmit,
+						reset: this.reset,
+						onReset: this.handleReset,
+						onInputChange: this._createInputOnChange,
+						onCheckChange: this._createCheckOnChange,
+					},
+				}
+			} 
+
+			render() {
 				return (
 					<WrappedComponent
 						{...this.props}
-						form={{
-							isLoading: this.state.isLoading,
-							isPristine: this.state.isPristine,
-							submitError: this.state.submitError,
-							submitResult: this.state.submitResult,
-							errors,
-							hasErrors,
-
-							fields: this.state.formFields,
-
-							submit: this.submit,
-							reset: this.reset,
-							updateField: this.updateField,
-
-							// Event Handlers
-							onSubmit: this.handleSubmit,
-							onReset: this.handleReset,
-
-							getInputProps: this.formInputProps,
-							getFieldProps: this.formFieldProps,
-							
-							// Old API - Depricated
-							state: {
-								isLoading: this.state.isLoading,
-								isPristine: this.state.isPristine,
-								hasErrors,
-								errors,
-								submitError: this.state.submitError,
-								submitResult: this.state.submitResult,
-							},
-							actions: {
-								submit: this.submit,
-								onSubmit: this.handleSubmit,
-								reset: this.reset,
-								onReset: this.handleReset,
-								onInputChange: this._createInputOnChange,
-								onCheckChange: this._createCheckOnChange,
-							},
-						}}
+						form={this.formProps()}
 					/>
 				);
 			}

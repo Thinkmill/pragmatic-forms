@@ -5,8 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "start": "webpack-dev-server --config webpack.config.js",
-    "build:example": "webpack",
-    "build:release": "mkdir -p ./lib && babel src/index.js --out-file lib/index.js",
+    "build": "./scripts/build.sh",
+    "prepublish": "./scripts/build.sh",
     "pretty": "./scripts/pretty.sh",
     "test": "jest"
   },

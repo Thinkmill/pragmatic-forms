@@ -96,10 +96,10 @@ const withForm = configureForm({
 });
 ```
 
-### `submit: Function(formData, props): Promise`
+### `submit: Function(formData, props, formProps): Promise`
 **required**
 
-The `submit` method will be called with `formData` and `props` and should return a promise.
+The `submit` method will be called with `formData`, `props` and `formProps` and should return a promise.
 
 eg. Trigger a `graphql` mutation using `react-apollo`
 ```js
@@ -141,10 +141,10 @@ export const MyForm = compose(
 ));
 ```
 
-### `validate?: Function(formData, props): { [fieldName: string]: any }`
+### `validate?: Function(formData, props, formProps): { [fieldName: string]: any }`
 _optional_
 
-The `validate` method receives `formData` and `props` and returns a map (Object) of errors keyed by the relevant fieldName.
+The `validate` method receives `formData`, `props` and `props` and returns a map (Object) of errors keyed by the relevant fieldName.
 
 eg.
 ```js
@@ -161,23 +161,24 @@ const withForm = configureForm({
 });
 ```
 
-### `onSuccess?: Function(results, props): void`
+### `onSuccess?: Function(results, props, formProps): void`
 _optional_
 
 The `onSuccess` method is called after `submit` has **resolved**, the form state has been update and `setState` has been called.
 
-It receives the result of the `submit` method and `props` as arguments.
+It receives the result of the `submit` method, `props` and `formProps` as arguments.
 
 ### `onError?: Function`
 _optional_
 
 The `onError` method is called after `submit` has **rejected**, the form state has been update and `setState` has been called.
 
-It receives the rejection reason of the `submit` method and `props` as arguments.
+It receives the rejection reason of the `submit` method `props` and `formProps` as arguments.
 
 ## The `form` Prop
+**aka `formProps`**
 
-The `form` prop provides access to the `state` and `methods` provided by `pragmatic-forms`. It is the only additional prop passed to the wrapped component.
+The `form` prop provides access to the `state` and `methods` provided by `pragmatic-forms` inside your component. The same object is also passed as the last parameter to each of the `configureForm` methods (excluding `initFields`).
 
 ### `form.isLoading: boolean`
 
@@ -251,7 +252,7 @@ const DeleteBtn = withForm(({ form }) => (
 
 Calling `form.reset` will reset the form to it's original state.
 
-### `form.onSubmit:Function`
+### `form.onSubmit: Function(event?: any) :void`
 
 The `submit` event handler. This should be passed as `onSubmit` to a `<form>` component.
 
@@ -266,7 +267,7 @@ const MyForm = withForm(({ form }) => (
 ));
 ```
 
-### `form.onReset:Function`
+### `form.onReset: Function(event?: any) :void`
 
 The `reset` event handler. This should be passed as `onReset` to a `<form>` component. When the `reset` event is triggered, the form will be reset to it's original state.
 
@@ -281,22 +282,39 @@ const MyForm = withForm(({ form }) => (
 ));
 ```
 
-### `form.updateField: Function(name:String, value:any)`
+### `form.updateField: Function(name:String, value:any) :void`
 
 Directly update the value of a field by name.
 
-### `form.getInputProps: Function(options):Object`
+### `form.getInputProps: Function(options): InputProps`
 
 Returns an object with props which can be passed to an `input` component.
+
+> NOTE: For checkboxes it is important to provide the correct type. ie. 'checkbox'. This allows the onChange event handler to check the checked state of the input rather than reading the value.
 
 #### `options`
  - `name:String`
  - `type?:String` Defaults to `"text"`
  - `value?:any` TODO: Requires explanation.
  - `checked?:boolean` Whether a checkbox is checked. Defaults to `false`
+ 
+#### `InputProps`
+ - `disabled: boolean` `true` while the form `isLoading`
+ - `name: string` whatever was provided in `options`.
+ - `type: string` whatever was provided in `options`. Defaults to `text`
+ - `onChange: (event) => void` a change handler
+ - `checked: boolean` Only for a `checkbox` or `radio`
+ - `value` Not provided for a `checkbox`.
 
-### `form.getFieldProps:Function`
+### `form.getFieldProps: Function(options): FieldProps`
 
+Takes the same options as `form.getInputProps`.
+
+In addition to the props provided by `form.getInputProps` this method also returns props which can be used to show more information on a custom component.
+
+ - `error?: string` Either a string error message or `null` if there is no error.
+ - `isDirty: boolean` `true` when the field has been modified.
+ - `onValueChange: (value: any) =>` a special change handler which accepts the value directly rather than via a change event.
 
 ### `state` (Deprecated)
 
