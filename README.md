@@ -40,8 +40,8 @@ const withForm = configureForm({
 });
 
 const RegistrationForm = ({ form }) => (
-	<form onSubmit={form.actions.onSubmit}>
-		{!form.state.hasErrors && 
+	<form onSubmit={form.onSubmit}>
+		{!form.hasErrors && 
 			<div>
 				<p style={{ color: 'red' }}>Please correct the your input</p>
 			</div>
@@ -52,7 +52,7 @@ const RegistrationForm = ({ form }) => (
 	
 		<button
 			type="submit"
-			disabled={form.state.hasErrors || form.state.isLoading}
+			disabled={form.hasErrors || form.isLoading}
 		>
 			Submit
 		</button>
@@ -63,9 +63,266 @@ export default withForm(RegistrationForm);
 
 ```
 
+# API Documentation
+
+When working with `pragmatic-forms` you will be interacting with either the
+`configureForm` method or the `form` prop passed to your component.
+
+## `configureForm: function(options:Object)`
+
+`configureForm` accepts an options object and returns a method for creating a higher order component which will wrap your form to provide state and event handlers.
+
+- `initFields:Function`
+- `submit: Function`
+- `validate?: Function`
+- `onSuccess?: Function`
+- `onError?: Function`
+
+### `initFields: Function(props):  { [fieldName: string]: any }`
+**required**
+
+The `initFields` method will receive props as it's only argument. This method should return an object with key/value pairs that provide the default value for each form field in your form.
+
+> Tip: This is a good place to set a default value for a field to avoid the react warning "changing an uncontrolled input of type text to be controlled".
+
+eg.
+```js
+const withForm = configureForm({
+	initFields: (props) => ({
+		name: props.name || '',
+		email: props.email || '',
+	}),
+	...
+});
+```
+
+### `submit: Function(formData, props): Promise`
+**required**
+
+The `submit` method will be called with `formData` and `props` and should return a promise.
+
+eg. Trigger a `graphql` mutation using `react-apollo`
+```js
+import { graphql, gql, compose} from 'react-apollo';
+import { configureForm } from 'pragmatic-forms';
+
+const query = gql`
+mutation createUser (
+	$name: String!
+	$email: String!
+) {
+	createUser (user: {
+		name: $name
+		email: $email
+	})
+	{
+		id
+	}
+}
+`;
+
+export const MyForm = compose(
+	graphql(query),
+	configureForm({
+		initFields: () => ({ name: '', email: '' }),
+		submit: (formData, props) => {
+			return props.mutate({
+				variables: {
+					name: formData.name,
+					email: formData.email, 
+				},
+			});
+		}
+	})
+)(({ form }) => (
+	<form onSubmit={form.onSubmit}>
+		{'...'}
+	</form>
+));
+```
+
+### `validate?: Function(formData, props): { [fieldName: string]: any }`
+_optional_
+
+The `validate` method receives `formData` and `props` and returns a map (Object) of errors keyed by the relevant fieldName.
+
+eg.
+```js
+const withForm = configureForm({
+	initFields: () => ({ email: '' }),
+	submit: (formData) => console.log(formData),
+	validate: (formData, props) => {
+		const errors = {};
+		if (!formData.email.includes('@')) {
+			errors.email = 'Please enter a valid email address';
+		}
+		return errors;
+	},
+});
+```
+
+### `onSuccess?: Function(results, props): void`
+_optional_
+
+The `onSuccess` method is called after `submit` has **resolved**, the form state has been update and `setState` has been called.
+
+It receives the result of the `submit` method and `props` as arguments.
+
+### `onError?: Function`
+_optional_
+
+The `onError` method is called after `submit` has **rejected**, the form state has been update and `setState` has been called.
+
+It receives the rejection reason of the `submit` method and `props` as arguments.
+
+## The `form` Prop
+
+The `form` prop provides access to the `state` and `methods` provided by `pragmatic-forms`. It is the only additional prop passed to the wrapped component.
+
+### `form.isLoading: boolean`
+
+`true` if the submit method has been called and the promise has not resolved or rejected. Otherwise `false`
+
+### `form.isPristine: boolean`
+
+`true` until a `change` event is triggered on one or more of the forms inputs.
+
+### `form.submitError: any`
+
+`submitError` is populated with the rejection `reason` if the form submit Promise is `rejected`.
+
+### `form.submitResult: any`
+
+`submitResult` is populated with the resolve value (if any) if the form submit Promise us `resolved`.
+
+### `form.errors: { [fieldName: string]: any }`
+
+Key-value pairs giving the validation errors for each field by field name.
+The `value` will be whatever was returned in the validation method.
+
+### `form.hasErrors: boolean`
+
+`true` if the validate method returned an `error` object with at least one property.
+
+### `form.fields: Object`
+
+Provides access to the form fields as they are stored internally in `pragmatic-forms`.
+
+Each field will have the following shape:
+
+```js
+[fieldName: string]: {
+	value: 'field value', // :any - whatever you put in here.
+	isDirty: false, // Boolean - has the field been modified
+	error: 'some error', // ?String - a field level error message (provided by the `validate` method)
+}
+```
+
+### `form.submit: Function(): void`
+
+Calling `form.submit` will trigger the submit handler directly.
+
+Use cases:
+- have a form which is not wrapped in a form tag
+- trigger form submission programatically (eg. on a timer)
+
+eg. Create a delete button
+
+```js
+const withForm = configureForm({
+	initFields: (props) => ({ id: props.id }),
+	submit: ({ id }) => {
+		return fetch(`/item/${id}`, { method: 'delete' });
+	}
+})
+
+const DeleteBtn = withForm(({ form }) => (
+	<button
+		type="button"
+		onClick={form.submit}
+		disabled={form.isLoading}
+	>
+		Delete me
+	</button>
+));
+```
+
+### `form.reset: Function() :void`
+
+Calling `form.reset` will reset the form to it's original state.
+
+### `form.onSubmit:Function`
+
+The `submit` event handler. This should be passed as `onSubmit` to a `<form>` component.
+
+eg.
+```js
+const withForm = configureForm({ ... });
+const MyForm = withForm(({ form }) => (
+	<form onSubmit={form.onSubmit}>
+		...
+		<button type="submit">Submit</button>
+	</form>
+));
+```
+
+### `form.onReset:Function`
+
+The `reset` event handler. This should be passed as `onReset` to a `<form>` component. When the `reset` event is triggered, the form will be reset to it's original state.
+
+eg.
+```js
+const withForm = configureForm({ ... });
+const MyForm = withForm(({ form }) => (
+	<form onReset={form.onReset}>
+		...
+		<button type="reset">Reset</button>
+	</form>
+));
+```
+
+### `form.updateField: Function(name:String, value:any)`
+
+Directly update the value of a field by name.
+
+### `form.getInputProps: Function(options):Object`
+
+Returns an object with props which can be passed to an `input` component.
+
+#### `options`
+ - `name:String`
+ - `type?:String` Defaults to `"text"`
+ - `value?:any` TODO: Requires explanation.
+ - `checked?:boolean` Whether a checkbox is checked. Defaults to `false`
+
+### `form.getFieldProps:Function`
+
+
+### `state` (Deprecated)
+
+> `state` has been deprecated in favour of having all props available on the top level `form` object.
+
+Contains the form state fields defined above
+ - `isLoading`
+ - `isPristine`
+ - `hasErrors`
+ - `errors`
+ - `submitError`
+ - `submitResult`
+
+### `actions` (Deprecated)
+
+> `actions` has been deprecated in favour of having all props available on the top level `form` object.
+
+Contains the following form `methods` and `event handlers` defined above:
+ - `submit`
+ - `onSubmit`
+ - `reset`
+ - `onReset`
+
 ### Reference material and prior art
 
 Many of the ideas in here are not new. This is a list of some of the places I have taken inspiration from.
 
-https://github.com/jaredpalmer/formik
-http://redux-form.com/
+- https://github.com/jaredpalmer/formik
+- http://redux-form.com/
