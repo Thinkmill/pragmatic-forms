@@ -6,15 +6,36 @@ type FieldPropOptions = {
 	type?: string,
 	value?: any,
 	checked?: boolean,
-	// parse?: ,
-	// format?: func,
 };
 
 type FieldItemState<T> = {
 	value: T,
-	isDirty: Boolean,
-	error: ?String,
+	isDirty: boolean,
+	error: ?string,
 };
+
+type Props = {
+	onFormStateChange: (formState: {[fieldName: string]: any}) => mixed
+};
+
+type State = {
+	formFields: any,
+	isPristine: boolean,
+	isLoading: boolean,
+	submitResult?: any,
+	submitError?: any,
+}
+
+type FormData = { [fieldName: string]: any }
+type ErrorData = { [fieldName: string]: any }
+
+type Options = {
+	initFields: (props: any) => FormData,
+	submit: (formData: FormData, props: any) => mixed,
+	validate?: (formData: FormData, props: any) => ErrorData,
+	onSuccess?: (result: any, props: any) => mixed,
+	onError?: (result: any, props: any) => mixed,
+}
 
 const initialFieldState = (value) => ({
 	value,
@@ -29,7 +50,7 @@ const initialiseFormFields = <A>(initialData: { [string]: A }): { [string]: Fiel
 	}, {});
 }
 
-const updateFormFieldErrors = <A>(state: { [string]: FieldItemState<A> }, errors: { [string]: String }): { [string]: FieldItemState<A> } => {
+const updateFormFieldErrors = <A>(state: { [string]: FieldItemState<A> }, errors: { [string]: string }): { [string]: FieldItemState<A> } => {
 	return Object.keys(state).reduce((acc, key) => {
 		acc[key] = {
 			...state[key],
@@ -39,7 +60,7 @@ const updateFormFieldErrors = <A>(state: { [string]: FieldItemState<A> }, errors
 	}, {});
 };
 
-function hasErrors(errorObj: { [string]: string }): boolean {
+function objectHasKeys(errorObj: { [string]: string }): boolean {
 	return Object.keys(errorObj).length > 0;
 }
 
@@ -65,25 +86,24 @@ export function configureForm ({
 	validate = () => ({}),
 	onSuccess = () => {},
 	onError = () => {},
-}: {
-	initFields: Function,
-	submit: Function,
-	validate?: Function,
-	onSuccess?: Function,
-	onError?: Function,
-}) {
-	return function decorator (WrappedComponent: any) {
-		return class PragForm extends Component {
+}: Options) {
 
-			static props: {
-				onFormStateChange: Function,
-			}
+	const options = {
+		initFields,
+		submit,
+		validate,
+		onSuccess,
+		onError,
+	};
+	
+	return function decorator (WrappedComponent: any) {
+		return class PragForm extends Component<Props, State> {
 
 			static defaultProps = {
 				onFormStateChange: () => {},
 			}
 
-			state = {
+			state: State = {
 				formFields: {},
 				isPristine: true,
 				isLoading: false,
@@ -95,7 +115,7 @@ export function configureForm ({
 
 			constructor(props: any, context: any) {
 				super(props, context);
-				const initialData = initFields(props);
+				const initialData = options.initFields(props);
 				this.state = {
 					formFields: initialiseFormFields(initialData),
 					submitResult: undefined,
@@ -119,7 +139,7 @@ export function configureForm ({
 				this.props.onFormStateChange(this.state)
 			}
 
-			_updateField = (name: string, value: any) => {
+			updateField = (name: string, value: any) => {
 				const { formFields } = this.state;
 				this.setState({
 					formFields: {
@@ -135,12 +155,12 @@ export function configureForm ({
 				});
 			}
 
-			updateInput = (name: string) => (event: any) => {
-				this._updateField(name, event.currentTarget.value);
+			_createInputOnChange = (name: string) => (event: any) => {
+				this.updateField(name, event.currentTarget.value);
 			};
 
-			updateCheck = (name: string) => (event: any) => {
-				this._updateField(name, event.currentTarget.checked);
+			_createCheckOnChange = (name: string) => (event: any) => {
+				this.updateField(name, event.currentTarget.checked);
 			};
 
 			_getFieldValueWithDefault = (name: string, defaultValue: any) => {
@@ -157,7 +177,7 @@ export function configureForm ({
 					this.fieldProps[name] = {
 						name,
 						type,
-						onChange: (type === 'checkbox') ? this.updateCheck(name) : this.updateInput(name),
+						onChange: (type === 'checkbox') ? this._createCheckOnChange(name) : this._createInputOnChange(name),
 					};
 				}
 
@@ -166,7 +186,7 @@ export function configureForm ({
 				switch (type) {
 					case 'checkbox': 
 						return Object.assign(this.fieldProps[name], {
-							checked: this._getFieldValueWithDefault(name, checked), // This defaults to not checked based on what ...
+							checked: this._getFieldValueWithDefault(name, checked), // This defaults to not checked
 							disabled,
 						});
 					case 'radio':
@@ -190,18 +210,19 @@ export function configureForm ({
 				return Object.assign(inputProps, {
 					error: fieldState.error,
 					isDirty: fieldState.isDirty,
-					onValueChange: (value) => this._updateField(options.name, value),
+					onValueChange: (value) => this.updateField(options.name, value),
 				});
 			}
 
-			triggerSubmit = () => this.handleSubmit();
+			submit = () => this.handleSubmit();
+			reset = () => this.handleReset();
 
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
 				const formData = getFormFieldsValues(this.state.formFields); 
-				const errors = validate(formData);
+				const errors = options.validate(formData, this.props);
 
-				if (hasErrors(errors)) {
+				if (objectHasKeys(errors)) {
 					return this.setState({
 						formFields: updateFormFieldErrors(this.state.formFields, errors),
 					});
@@ -212,45 +233,77 @@ export function configureForm ({
 				});
 				
 				try {
-					const result = await submit(formData, this.props);
+					const result = await options.submit(formData, this.props);
 					this.setState({
 						isLoading: false,
-						isPristine: true,
 						submitResult: result,
-					});
-					return onSuccess(result, this.props);
+						// $FlowFixMe - flow seems to be unaware of the second argument to setState.
+					}, () => options.onSuccess(result, this.props));
 				} catch (reason) {
 					this.setState({
 						isLoading: false,
 						submitError: reason,
-					});
-					return onError(reason, this.props);
+						// $FlowFixMe - flow seems to be unaware of the second argument to setState.
+					}, () => options.onError(reason, this.props));
 				}
+			}
+
+			handleReset = async (event?: Event) => {
+				event && event.preventDefault();
+				const initialData = options.initFields(this.props);
+				this.setState({
+					formFields: initialiseFormFields(initialData),
+					submitResult: undefined,
+					submitError: undefined,
+					isLoading: false,
+					isPristine: true,
+				});
 			}
 
 			render() {
 				const errors = getFormFieldsErrors(this.state.formFields);
+				const hasErrors = objectHasKeys(errors);
 				return (
 					<WrappedComponent
 						{...this.props}
 						form={{
+							isLoading: this.state.isLoading,
+							isPristine: this.state.isPristine,
+							submitError: this.state.submitError,
+							submitResult: this.state.submitResult,
+							errors,
+							hasErrors,
+
+							fields: this.state.formFields,
+
+							submit: this.submit,
+							reset: this.reset,
+							updateField: this.updateField,
+
+							// Event Handlers
+							onSubmit: this.handleSubmit,
+							onReset: this.handleReset,
+
+							getInputProps: this.formInputProps,
+							getFieldProps: this.formFieldProps,
+							
+							// Old API - Depricated
 							state: {
 								isLoading: this.state.isLoading,
 								isPristine: this.state.isPristine,
-								hasErrors: hasErrors(errors),
+								hasErrors,
 								errors,
 								submitError: this.state.submitError,
 								submitResult: this.state.submitResult,
 							},
-							fields: this.state.formFields,
 							actions: {
-								submit: this.triggerSubmit,
+								submit: this.submit,
 								onSubmit: this.handleSubmit,
-								onInputChange: this.updateInput,
-								onCheckChange: this.updateCheck,
+								reset: this.reset,
+								onReset: this.handleReset,
+								onInputChange: this._createInputOnChange,
+								onCheckChange: this._createCheckOnChange,
 							},
-							getInputProps: this.formInputProps,
-							getFieldProps: this.formFieldProps,
 						}}
 					/>
 				);
