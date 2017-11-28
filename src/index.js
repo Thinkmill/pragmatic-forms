@@ -281,6 +281,14 @@ export function configureForm ({
 			submit = () => this.handleSubmit();
 			reset = () => this.handleReset();
 
+			formComponent = (props: any) => (
+				<form
+					{...props}
+					onSubmit={this.handleSubmit}
+					onReset={this.handleReset}
+				/>
+			);
+
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
 				const formData = getFormFieldsValues(this.state.formFields);
@@ -354,6 +362,8 @@ export function configureForm ({
 						onSubmit: this.handleSubmit,
 						onReset: this.handleReset,
 					}),
+
+					Form: this.formComponent,
 
 					// Old API - Depricated
 					state: {
