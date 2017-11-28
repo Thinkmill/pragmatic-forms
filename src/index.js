@@ -350,7 +350,11 @@ export function configureForm ({
 
 					getInputProps: this.formInputProps,
 					getFieldProps: this.formFieldProps,
-					
+					getFormProps: () => ({
+						onSubmit: this.handleSubmit,
+						onReset: this.handleReset,
+					}),
+
 					// Old API - Depricated
 					state: {
 						isLoading: this.state.isLoading,
