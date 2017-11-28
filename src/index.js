@@ -41,6 +41,7 @@ type Options = {
 	validate?: (formData: FormData, props: any, formProps: FormProps) => ErrorData,
 	onSuccess?: (result: any, props: any, formProps: FormProps) => mixed,
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
+	onFirstInteraction?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 }
 
 type ChangeOptions = {
@@ -121,6 +122,7 @@ export function configureForm ({
 	validate = () => ({}),
 	onSuccess = () => {},
 	onError = () => {},
+	onFirstInteraction = () => {},
 }: Options) {
 
 	const options = {
@@ -129,6 +131,7 @@ export function configureForm ({
 		validate,
 		onSuccess,
 		onError,
+		onFirstInteraction,
 	};
 	
 	return function decorator (WrappedComponent: any) {
@@ -195,6 +198,10 @@ export function configureForm ({
 							);
 						}
 					});
+				}
+				
+				if (isPristine) {
+					onFirstInteraction(getFormFieldsValues(formFields), this.props, this.formProps());
 				}
 				
 				this.setState({
