@@ -1,4 +1,5 @@
 // @flow
+/* global process */
 import React, { Component } from 'react';
 
 type FieldPropOptions = {
@@ -12,6 +13,7 @@ type FieldItemState<T> = {
 	value: T,
 	isDirty: boolean,
 	error: ?string,
+	valueType: string,
 };
 
 type Props = {
@@ -41,10 +43,21 @@ type Options = {
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 }
 
+type ChangeOptions = {
+	forceType?: 'string' | 'number' | 'boolean',
+}
+
+const notInProd = (cb) => {
+	if (process && process.env.NODE_ENV !== 'production') {
+		cb();
+	}
+}
+
 const initialFieldState = (value) => ({
 	value,
 	isDirty: false,
 	error: undefined,
+	valueType: typeof value,
 });
 
 const initialiseFormFields = <A>(initialData: { [string]: A }): { [string]: FieldItemState<A> } => {
@@ -83,6 +96,24 @@ const getFormFieldsErrors = <A>(state: { [string]: FieldItemState<A> }): { [stri
 		return acc;
 	}, {});
 };
+
+const forceValueType = (value: any, type: string): any => {
+	switch (type) {
+		case 'string':
+			return value.toString();
+		case 'boolean':
+			return (/^true|false$/.test(value))
+				? eval(value)
+				: Boolean(value)
+			;
+		case 'number':
+			return Number(value);
+		// TODO: are there other types we want to handle here?
+		// Dates maybe..
+		default:
+			return value;
+	}
+}
 
 export function configureForm ({
 	initFields,
@@ -144,13 +175,34 @@ export function configureForm ({
 				this.props.onFormStateChange(this.state)
 			}
 
-			updateField = (name: string, value: any) => {
-				const { formFields } = this.state;
+			updateField = (
+				name: string,
+				value: any,
+				options: ChangeOptions = {},
+			) => {
+				const { formFields, isPristine } = this.state;
+				const fieldItem = formFields[name];
+				let newValue = value;
+				
+				if (options.forceType) {
+					newValue = forceValueType(value, options.forceType);
+				} else {
+					notInProd(() => {
+						if (fieldItem.valueType !== typeof value) {
+							console.warn(  // eslint-disable-line no-console
+								`Value type of "${name}" has changed from "${fieldItem.valueType}" to "${typeof value}"`,
+								'Use `forceType` to coerce the value to a supported type.'
+							);
+						}
+					});
+				}
+				
 				this.setState({
 					formFields: {
 						...formFields,
 						[name]: {
-							value,
+							...fieldItem,
+							value: newValue,
 							error: undefined,
 							isDirty: true,
 						},
@@ -160,12 +212,12 @@ export function configureForm ({
 				});
 			}
 
-			_createInputOnChange = (name: string) => (event: any) => {
-				this.updateField(name, event.currentTarget.value);
+			_createInputOnChange = (name: string, options: ChangeOptions) => (event: any) => {
+				this.updateField(name, event.currentTarget.value, options);
 			};
 
-			_createCheckOnChange = (name: string) => (event: any) => {
-				this.updateField(name, event.currentTarget.checked);
+			_createCheckOnChange = (name: string, options: ChangeOptions) => (event: any) => {
+				this.updateField(name, event.currentTarget.checked, options);
 			};
 
 			_getFieldValueWithDefault = (name: string, defaultValue: any) => {
@@ -177,12 +229,12 @@ export function configureForm ({
 			}
 
 			formInputProps = (options: FieldPropOptions)  => {
-				const { name, type, value, checked } = options;
+				const { name, type, value, checked, ...changeOpts } = options;
 				if (!this.fieldProps[name]) {
 					this.fieldProps[name] = {
 						name,
 						type,
-						onChange: (type === 'checkbox') ? this._createCheckOnChange(name) : this._createInputOnChange(name),
+						onChange: (type === 'checkbox') ? this._createCheckOnChange(name, changeOpts) : this._createInputOnChange(name, changeOpts),
 					};
 				}
 
@@ -224,7 +276,7 @@ export function configureForm ({
 
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
-				const formData = getFormFieldsValues(this.state.formFields); 
+				const formData = getFormFieldsValues(this.state.formFields);
 				const errors = options.validate(formData, this.props, this.formProps());
 
 				if (objectHasKeys(errors)) {
