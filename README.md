@@ -70,6 +70,8 @@ When working with `pragmatic-forms` you will be interacting with either the
 
 ## `configureForm: function(options:Object)`
 
+The `pragmatic-forms` module exports a single named function: `configureForm`. This method creates a configured Higher Order Component to wrap a form providing state and event handlers through a single prop named `form`.
+
 `configureForm` accepts an options object and returns a method for creating a higher order component which will wrap your form to provide state and event handlers.
 
 - `initFields:Function`
