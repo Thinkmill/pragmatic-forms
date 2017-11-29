@@ -50,3 +50,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 dist/
+
+## Custom
+# Built files 
+lib/
