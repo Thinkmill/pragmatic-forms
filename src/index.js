@@ -277,6 +277,11 @@ export function configureForm ({
 					onValueChange: (value) => this.updateField(options.name, value),
 				});
 			}
+			
+			formProps = () => ({
+				onSubmit: this.handleSubmit,
+				onReset: this.handleReset,
+			})
 
 			submit = () => this.handleSubmit();
 			reset = () => this.handleReset();
@@ -358,10 +363,7 @@ export function configureForm ({
 
 					getInputProps: this.formInputProps,
 					getFieldProps: this.formFieldProps,
-					getFormProps: () => ({
-						onSubmit: this.handleSubmit,
-						onReset: this.handleReset,
-					}),
+					getFormProps: this.formProps,
 
 					Form: this.formComponent,
 
