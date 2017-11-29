@@ -63,6 +63,13 @@ export default withForm(RegistrationForm);
 
 ```
 
+# The Road to release
+
+- [ ] Track input focus in internal state (field.hasFocus)
+- [ ] Test with and create examples for React Native
+- [x] Export form props like field props ie. `form.getFormProps()`
+- [x] Export a `Form` component which can be used in place of `<form />` and doesn't require setting up props.
+
 # API Documentation
 
 When working with `pragmatic-forms` you will be interacting with either the
@@ -74,11 +81,12 @@ The `pragmatic-forms` module exports a single named function: `configureForm`. T
 
 `configureForm` accepts an options object and returns a method for creating a higher order component which will wrap your form to provide state and event handlers.
 
-- `initFields:Function`
+- `initFields: Function`
 - `submit: Function`
 - `validate?: Function`
 - `onSuccess?: Function`
 - `onError?: Function`
+- `onFirstInteraction?: Function`
 
 ### `initFields: Function(props):  { [fieldName: string]: any }`
 **required**
@@ -176,6 +184,14 @@ _optional_
 The `onError` method is called after `submit` has **rejected**, the form state has been update and `setState` has been called.
 
 It receives the rejection reason of the `submit` method `props` and `formProps` as arguments.
+
+
+### `onFirstInteraction?: Function(formData, props, formProps): void`
+_optional_
+
+The `onFirstInteraction` method is called when a form fields `onChange` handler is triggered.
+
+It receives the current `formData`, `props` and `formProps`.
 
 ## The `form` Prop
 **aka `formProps`**
@@ -295,11 +311,16 @@ Returns an object with props which can be passed to an `input` component.
 > NOTE: For checkboxes it is important to provide the correct type. ie. 'checkbox'. This allows the onChange event handler to check the checked state of the input rather than reading the value.
 
 #### `options`
- - `name:String`
- - `type?:String` Defaults to `"text"`
+ - `name: string`
+ - `type?: string` Defaults to `"text"`
  - `value?:any` TODO: Requires explanation.
- - `checked?:boolean` Whether a checkbox is checked. Defaults to `false`
- 
+ - `checked?: boolean` Whether a checkbox is checked. Defaults to `false`
+ - `forceType?: 'string' | 'number' | 'boolean'` undefined by default.
+
+If `forceType` is true, pragmatic-forms will attempt to maintain the primitive type of the initial value of a field. For example, if `initFields` returns a `boolean` for the field `isEnabled` and `onChange` is called with a `string` it will attempt to convert that string back to a boolean. This can be helpful when your Input component converts the value field type to a string.
+
+Currently `forceType` supports `string`, `number` and `boolean`.
+
 #### `InputProps`
  - `disabled: boolean` `true` while the form `isLoading`
  - `name: string` whatever was provided in `options`.
