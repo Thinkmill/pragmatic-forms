@@ -1,5 +1,4 @@
-# Clear and recreate the lib directory
-# rm -rf ./lib
+# Create the lib directory
 mkdir -p ./lib
 # Compile with babel
 babel src/index.js --out-file lib/index.js
