@@ -18,6 +18,9 @@ const withForm = configureForm({
 	}),
 	submit: (data) => console.log(data), // eslint-disable-line no-console
 	validate: () => ({}),
+	onChange: (formData, props) => {
+		props.onFormStateChange(formData);
+	},
 });
 
 type Props = {

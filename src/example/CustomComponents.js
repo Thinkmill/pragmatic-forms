@@ -7,13 +7,13 @@ import TextInput from './components/TextInput';
 const emailRegex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+/gi;
 
 const CustomComponents = ({ form }) => (
-	<form onSubmit={form.onSubmit} noValidate>
+	<form.Form noValidate>
 		<h3>Testing</h3>
 		<TextInput
 			{...form.getFieldProps({ name: 'email', type: 'email' })}
 		/>
 		<button type='submit'>GO</button>
-	</form>
+	</form.Form>
 );
 CustomComponents.propTypes = {
 	form: PropTypes.shape({
@@ -32,6 +32,9 @@ function validate (fields) {
 
 export default configureForm({
 	initFields: () => ({ email: '' }),
+	onChange: (formData, props) => {
+		props.onFormStateChange(formData);
+	},
 	submit: (values) => {
 		console.log(values); // eslint-disable-line no-console
 	},

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { configureForm } from '../index';
 
 const withForm = configureForm({
-	initFields: () => ({ name: '', isHappy: '' }),
+	initFields: () => ({ name: '', isHappy: '', month: '' }),
 	validate,
 	submit: data => {
 		return new Promise(resolve => {
@@ -14,10 +14,13 @@ const withForm = configureForm({
 			}, 1000);
 		});
 	},
+	onChange: (formData, props) => {
+		props.onFormStateChange(formData);
+	},
 });
 
 const BasicWebForm = ({ form }) => (
-	<form onSubmit={form.onSubmit} onReset={form.onReset}>
+	<form.Form>
 		{form.hasErrors && (
 			<div style={{ background: '#ff8787', border: '2px solid #d21111', color: '#8a0808', padding: '1em', marginBottom: 10 }}>
 				{Object.keys(form.errors).map(key => <div key={key}><strong>{key}:</strong> {form.errors[key]}</div>)}
@@ -57,7 +60,7 @@ const BasicWebForm = ({ form }) => (
 		<button type="reset" disabled={form.isLoading || form.hasErrors}>
 			Reset
 		</button>
-	</form>
+	</form.Form>
 );
 
 BasicWebForm.propTypes = {
@@ -71,7 +74,7 @@ BasicWebForm.propTypes = {
 
 function validate(data) {
 	const errors = {};
-	
+
 	if (!data.name) {
 		errors.name = 'We must have a name';
 	}

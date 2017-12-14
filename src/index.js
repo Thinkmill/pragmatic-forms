@@ -16,10 +16,6 @@ type FieldItemState<T> = {
 	valueType: string,
 };
 
-type Props = {
-	onFormStateChange: (formState: {[fieldName: string]: any}) => mixed
-}
-
 type FormProps = {
 	[string]: any
 }
@@ -35,10 +31,11 @@ type State = {
 type FormData = { [fieldName: string]: any }
 type ErrorData = { [fieldName: string]: any }
 
-type Options = {
+type Config = {
 	initFields: (props: any) => FormData,
 	submit: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	validate?: (formData: FormData, props: any, formProps: FormProps) => ErrorData,
+	onChange?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	onSuccess?: (result: any, props: any, formProps: FormProps) => mixed,
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 	onFirstInteraction?: (formData: FormData, props: any, formProps: FormProps) => mixed,
@@ -82,7 +79,7 @@ function objectHasKeys(errorObj: { [string]: string }): boolean {
 	return Object.keys(errorObj).length > 0;
 }
 
-const getFormFieldsValues = <A>(state: { [string]: FieldItemState<A> }): { [string]: A } => { 
+const getFormFieldsValues = <A>(state: { [string]: FieldItemState<A> }): { [string]: A } => {
 	return Object.keys(state).reduce((acc, key) => {
 		acc[key] = state[key].value;
 		return acc;
@@ -120,26 +117,24 @@ export function configureForm ({
 	initFields,
 	submit,
 	validate = () => ({}),
+	onChange, // not defaulting this one as it could be a performance killer.
 	onSuccess = () => {},
 	onError = () => {},
 	onFirstInteraction = () => {},
-}: Options) {
+}: Config) {
 
-	const options = {
+	const config = {
 		initFields,
 		submit,
 		validate,
+		onChange,
 		onSuccess,
 		onError,
 		onFirstInteraction,
 	};
-	
-	return function decorator (WrappedComponent: any) {
-		return class PragForm extends Component<Props, State> {
 
-			static defaultProps = {
-				onFormStateChange: () => {},
-			}
+	return function decorator (WrappedComponent: any) {
+		return class PragForm extends Component<void, State> {
 
 			state: State = {
 				formFields: {},
@@ -153,7 +148,7 @@ export function configureForm ({
 
 			constructor(props: any, context: any) {
 				super(props, context);
-				const initialData = options.initFields(props);
+				const initialData = config.initFields(props);
 				this.state = {
 					formFields: initialiseFormFields(initialData),
 					submitResult: undefined,
@@ -162,20 +157,17 @@ export function configureForm ({
 					isPristine: true,
 				};
 			}
-			
-			componentDidMount = () => {
-				this.props.onFormStateChange(this.state);
-			}
-			
+
 			setState (changes: { [string]: any }, callback?: Function) {
 				super.setState(changes, () => {
-					this.props.onFormStateChange(this.state);
-					callback && callback();
+					if (config.onChange) {
+						const formData = getFormFieldsValues(this.state.formFields);
+						config.onChange(formData, this.props, this.formProps())
+					}
+					if (callback) {
+						callback();
+					}
 				});
-			}
-			
-			_reportChanges = () => {
-				this.props.onFormStateChange(this.state)
 			}
 
 			updateField = (
@@ -186,7 +178,7 @@ export function configureForm ({
 				const { formFields, isPristine } = this.state;
 				const fieldItem = formFields[name];
 				let newValue = value;
-				
+
 				if (options.forceType) {
 					newValue = forceValueType(value, options.forceType);
 				} else {
@@ -199,11 +191,11 @@ export function configureForm ({
 						}
 					});
 				}
-				
+
 				if (isPristine) {
 					onFirstInteraction(getFormFieldsValues(formFields), this.props, this.formProps());
 				}
-				
+
 				this.setState({
 					formFields: {
 						...formFields,
@@ -248,7 +240,7 @@ export function configureForm ({
 				const disabled = this.state.isLoading;
 
 				switch (type) {
-					case 'checkbox': 
+					case 'checkbox':
 						return Object.assign(this.fieldProps[name], {
 							checked: this._getFieldValueWithDefault(name, checked), // This defaults to not checked
 							disabled,
@@ -277,8 +269,8 @@ export function configureForm ({
 					onValueChange: (value) => this.updateField(options.name, value),
 				});
 			}
-			
-			formProps = () => ({
+
+			formComponentProps = () => ({
 				onSubmit: this.handleSubmit,
 				onReset: this.handleReset,
 			})
@@ -297,7 +289,7 @@ export function configureForm ({
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
 				const formData = getFormFieldsValues(this.state.formFields);
-				const errors = options.validate(formData, this.props, this.formProps());
+				const errors = config.validate(formData, this.props, this.formProps());
 
 				if (objectHasKeys(errors)) {
 					return this.setState({
@@ -308,28 +300,28 @@ export function configureForm ({
 				this.setState({
 					isLoading: true,
 				});
-				
+
 				try {
-					const result = await options.submit(formData, this.props, this.formProps());
+					const result = await config.submit(formData, this.props, this.formProps());
 					this.setState({
 						isLoading: false,
 						submitResult: result,
 					}, () => {
-						options.onSuccess(result, this.props, this.formProps());
+						config.onSuccess(result, this.props, this.formProps());
 					});
 				} catch (reason) {
 					this.setState({
 						isLoading: false,
 						submitError: reason,
 					}, () => {
-						options.onError(reason, this.props, this.formProps());
+						config.onError(reason, this.props, this.formProps());
 					});
 				}
 			}
 
 			handleReset = async (event?: Event) => {
 				event && event.preventDefault();
-				const initialData = options.initFields(this.props);
+				const initialData = config.initFields(this.props);
 				this.setState({
 					formFields: initialiseFormFields(initialData),
 					submitResult: undefined,
@@ -361,9 +353,10 @@ export function configureForm ({
 					onSubmit: this.handleSubmit,
 					onReset: this.handleReset,
 
+					// Prop getters
 					getInputProps: this.formInputProps,
 					getFieldProps: this.formFieldProps,
-					getFormProps: this.formProps,
+					getFormProps: this.formComponentProps,
 
 					Form: this.formComponent,
 
@@ -385,7 +378,7 @@ export function configureForm ({
 						onCheckChange: this._createCheckOnChange,
 					},
 				}
-			} 
+			}
 
 			render() {
 				return (
