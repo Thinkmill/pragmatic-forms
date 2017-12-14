@@ -185,6 +185,12 @@ The `onError` method is called after `submit` has **rejected**, the form state h
 
 It receives the rejection reason of the `submit` method `props` and `formProps` as arguments.
 
+### `onChange?: Function(formData, props, formProps): void`
+_optional_
+
+The `onChange` method is called after the internal `setState` is complete when any form field has fired it's `onChange` or `onValueChange` event.
+
+It receives the complete `formData` object, `props` and `formProps` as arguments.
 
 ### `onFirstInteraction?: Function(formData, props, formProps): void`
 _optional_
