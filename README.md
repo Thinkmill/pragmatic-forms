@@ -395,6 +395,12 @@ Contains the following form `methods` and `event handlers` defined above:
  - `reset`
  - `onReset`
 
+# Build and release
+
+`yarn build` will compile the code which can then be either published or `yarn link`ed if you are developing.
+
+To release a new version of run `yarn publish`. This will run the `build` script and prompt for a new `version number`.
+
 # Reference material and prior art
 
 Many of the ideas in here are not new. This is a list of some of the places I have taken inspiration from.
