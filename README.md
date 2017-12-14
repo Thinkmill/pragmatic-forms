@@ -1,6 +1,45 @@
 # Pragmatic Forms
 A pragmatic approach to forms in React (Web and Native)
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Goals](#goals)
+- [Example usage](#example-usage)
+- [The Road to release](#the-road-to-release)
+- [API Documentation](#api-documentation)
+  - [`configureForm: function(options:Object)`](#configureform-functionoptionsobject)
+    - [`initFields: Function(props):  { [fieldName: string]: any }`](#initfields-functionprops---fieldname-string-any-)
+    - [`submit: Function(formData, props, formProps): Promise`](#submit-functionformdata-props-formprops-promise)
+    - [`validate?: Function(formData, props, formProps): { [fieldName: string]: any }`](#validate-functionformdata-props-formprops--fieldname-string-any-)
+    - [`onSuccess?: Function(results, props, formProps): void`](#onsuccess-functionresults-props-formprops-void)
+    - [`onError?: Function`](#onerror-function)
+    - [`onChange?: Function(formData, props, formProps): void`](#onchange-functionformdata-props-formprops-void)
+    - [`onFirstInteraction?: Function(formData, props, formProps): void`](#onfirstinteraction-functionformdata-props-formprops-void)
+  - [The `form` Prop](#the-form-prop)
+    - [`form.isLoading: boolean`](#formisloading-boolean)
+    - [`form.isPristine: boolean`](#formispristine-boolean)
+    - [`form.submitError: any`](#formsubmiterror-any)
+    - [`form.submitResult: any`](#formsubmitresult-any)
+    - [`form.errors: { [fieldName: string]: any }`](#formerrors--fieldname-string-any-)
+    - [`form.hasErrors: boolean`](#formhaserrors-boolean)
+    - [`form.fields: Object`](#formfields-object)
+    - [`form.submit: Function(): void`](#formsubmit-function-void)
+    - [`form.reset: Function() :void`](#formreset-function-void)
+    - [`form.onSubmit: Function(event?: any) :void`](#formonsubmit-functionevent-any-void)
+    - [`form.onReset: Function(event?: any) :void`](#formonreset-functionevent-any-void)
+    - [`form.updateField: Function(name:String, value:any) :void`](#formupdatefield-functionnamestring-valueany-void)
+    - [`form.getInputProps: Function(options): InputProps`](#formgetinputprops-functionoptions-inputprops)
+      - [`options`](#options)
+      - [`InputProps`](#inputprops)
+    - [`form.getFieldProps: Function(options): FieldProps`](#formgetfieldprops-functionoptions-fieldprops)
+    - [`state` (Deprecated)](#state-deprecated)
+    - [`actions` (Deprecated)](#actions-deprecated)
+- [Reference material and prior art](#reference-material-and-prior-art)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Goals
 - be simple
 - be declarative
@@ -10,24 +49,20 @@ A pragmatic approach to forms in React (Web and Native)
 - work with YOUR state management library
 - work in browser and react-native
 
-Example usage:
+# Example usage
 
 ```js
 import { configureForm } from '@thinkmill/pragmatic-forms';
 
-const withForm = configureForm({
-	initFields: (props) => ({
-		name: props.name || '',
-		agree: false,
+const RegistrationForm = configureForm({
+	initFields: () => ({
+		name: '',
+		email: '',
 	}),
-	validate: ({ name, agree }, props) => {
+	validate: ({ name }) => {
 		const errors = {};
 		if (!name) errors.name = 'Please enter a name';
-		else if (name === props.name) {
-			errors.name = `Name must be changed to something other than ${props.name}`;
-		}
-		if (!agree) errors.agree = 'You must agree to the conditions';
-
+		if (!name) errors.email = 'Please enter an email';
 		return errors;
 	},
 	submit: (formData) => {
@@ -36,31 +71,24 @@ const withForm = configureForm({
 			body: JSON.stringify(formData),
 		})
 		.then(res => res.json());
-	}
-});
-
-const RegistrationForm = ({ form }) => (
-	<form onSubmit={form.onSubmit}>
-		{!form.hasErrors && 
+	},
+})(({ form }) => (
+	<form.Form>
+		{!form.hasErrors &&
 			<div>
 				<p style={{ color: 'red' }}>Please correct the your input</p>
 			</div>
 		}
-
 		<input {...form.getInputProps({ name: 'name', type: 'text' })} />
-		<input {...form.getInputProps({ name: 'agree', type: 'checkbox' })} />
-	
+		<input {...form.getInputProps({ name: 'email', type: 'email' })} />
 		<button
 			type="submit"
 			disabled={form.hasErrors || form.isLoading}
 		>
 			Submit
 		</button>
-	</form>
-);
-
-export default withForm(RegistrationForm);
-
+	</form.Form>
+));
 ```
 
 # The Road to release
@@ -139,7 +167,7 @@ export const MyForm = compose(
 			return props.mutate({
 				variables: {
 					name: formData.name,
-					email: formData.email, 
+					email: formData.email,
 				},
 			});
 		}
@@ -367,7 +395,7 @@ Contains the following form `methods` and `event handlers` defined above:
  - `reset`
  - `onReset`
 
-### Reference material and prior art
+# Reference material and prior art
 
 Many of the ideas in here are not new. This is a list of some of the places I have taken inspiration from.
 

@@ -8,7 +8,8 @@
     "build": "./scripts/build.sh",
     "prepublish": "./scripts/build.sh",
     "pretty": "./scripts/pretty.sh",
-    "test": "jest"
+    "test": "jest",
+    "doctoc": "doctoc README.md"
   },
   "keywords": [
     "React",
@@ -27,6 +28,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-es2017": "^6.24.1",
     "babel-preset-react": "^6.24.1",
+    "doctoc": "^1.3.0",
     "eslint": "^4.1.1",
     "eslint-plugin-flowtype": "^2.33.0",
     "eslint-plugin-react": "^7.0.1",
