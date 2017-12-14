@@ -134,7 +134,9 @@ export function configureForm ({
 	};
 
 	return function decorator (WrappedComponent: any) {
-		return class PragForm extends Component<void, State> {
+		return class PragmaticForm extends Component<void, State> {
+
+			static displayName = `PragmaticForm(${WrappedComponent.displayName || WrappedComponent.name})`;
 
 			state: State = {
 				formFields: {},
