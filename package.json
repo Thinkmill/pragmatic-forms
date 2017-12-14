@@ -1,6 +1,6 @@
 {
   "name": "@thinkmill/pragmatic-forms",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "A pragmatic approach to form handling in React",
   "main": "lib/index.js",
   "scripts": {
