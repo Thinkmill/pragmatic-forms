@@ -151,13 +151,7 @@ export function configureForm ({
 			constructor(props: any, context: any) {
 				super(props, context);
 				const initialData = config.initFields(props);
-				this.state = {
-					formFields: initialiseFormFields(initialData),
-					submitResult: undefined,
-					submitError: undefined,
-					isLoading: false,
-					isPristine: true,
-				};
+				this.state.formFields = initialiseFormFields(initialData);
 			}
 
 			setState (changes: { [string]: any }, callback?: Function) {
