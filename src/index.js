@@ -156,7 +156,7 @@ export function configureForm ({
 
 			setState (changes: { [string]: any }, callback?: Function) {
 				super.setState(changes, () => {
-					if (config.onChange) {
+					if (config && typeof config.onChange === 'function') {
 						const formData = getFormFieldsValues(this.state.formFields);
 						config.onChange(formData, this.props, this.formProps())
 					}
