@@ -54,3 +54,4 @@ dist/
 ## Custom
 # Built files 
 lib/
+/coverage

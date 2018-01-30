@@ -9,7 +9,6 @@ describe('displayName', () => {
 		const wrappedComponent = withForm(CheeseForm);
 		expect(wrappedComponent.displayName).toBe('PragmaticForm(CheeseForm)');
 	});
-
 	it('returns a displayName using displayName', () => {
 		const withForm = configureForm({ initFields: () => ({}) });
 		class CheeseForm extends Component {
