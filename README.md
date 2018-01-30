@@ -1,6 +1,8 @@
 # Pragmatic Forms
 A pragmatic approach to forms in React (Web and Native)
 
+![Build Status](https://travis-ci.org/Thinkmill/pragmatic-forms.svg?branch=master)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
