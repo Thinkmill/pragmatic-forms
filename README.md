@@ -76,7 +76,7 @@ const RegistrationForm = configureForm({
 	},
 })(({ form }) => (
 	<form.Form>
-		{!form.hasErrors &&
+		{form.hasErrors &&
 			<div>
 				<p style={{ color: 'red' }}>Please correct the your input</p>
 			</div>
