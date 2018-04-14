@@ -6,11 +6,13 @@ import styled, { injectGlobal } from 'styled-components';
 import JsonView from 'react-json-view'
 
 import BasicWebForm from './BasicWebForm';
+import FileInputForm from "./FileInputForm";
 import CustomComponents from './CustomComponents';
 import MyVehicles from './MyVehicles';
 
 const forms = [
 	{ component: BasicWebForm, label: 'Basic Form' },
+	{ component: FileInputForm, label: "File Input Form" },
 	{ component: CustomComponents, label: 'Custom Form Fields' },
 	{ component: MyVehicles, label: 'Nested form' },
 ];
@@ -72,6 +74,22 @@ class App extends Component<any, State> {
 
 	render () {
 		const CurrentForm = forms[this.state.selectedForm];
+
+		// File objects don't get serialised nicely into JSON but we need
+		// to keep them in state so people can work with them.
+		// Go through our state and if anything is a file, replace it with
+		// a description of the file first.
+		//
+		// Make a copy so we don't mutate our state.
+		const formState = Object.assign({}, this.state.formState);
+
+		// Now clean it up ready to go.
+		for (const key of Object.keys(formState)) {
+			if (formState[key] instanceof File) {
+				formState[key] = `File: ${formState[key].name}`;
+			}
+		}
+
 		return (
 			<Main>
 				<Buttons
@@ -84,7 +102,7 @@ class App extends Component<any, State> {
 					onFormStateChange={this._handleFormStateChange}
 				/>
 				<h3>Form state</h3>
-				<JsonView src={this.state.formState} />
+				<JsonView src={formState} />
 			</Main>
 		);
 	}

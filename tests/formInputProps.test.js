@@ -63,4 +63,23 @@ describe('formInputProps', () => {
 			{},
 		);
 	});
+	it('should provide props for a file input', () => {
+		const withForm = configureForm({ initFields: () => ({ cv: null }) });
+		const MockInput = jest.fn().mockReturnValue(<div />);
+		const Comp = withForm(({ form }) => (
+			<MockInput {...form.getInputProps({ type: 'file', name: 'cv', value: null })} />
+		));
+
+		mount(<Comp />);
+		expect(MockInput).toBeCalledWith(
+			{
+				name: 'cv',
+				type: 'file',
+				value: null,
+				disabled: false,
+				onChange: expect.any(Function),
+			},
+			{},
+		);
+	});
 });

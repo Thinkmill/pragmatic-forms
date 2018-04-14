@@ -208,7 +208,11 @@ export function configureForm ({
 			}
 
 			_createInputOnChange = (name: string, options: ChangeOptions) => (event: any) => {
-				this.updateField(name, event.currentTarget.value, options);
+				if (event.currentTarget.files) {
+					this.updateField(name, event.currentTarget.files[0], options);
+				} else {
+					this.updateField(name, event.currentTarget.value, options);
+				}
 			};
 
 			_createCheckOnChange = (name: string, options: ChangeOptions) => (event: any) => {
@@ -247,6 +251,11 @@ export function configureForm ({
 							value,
 							disabled,
 						});
+					case 'file':
+						return Object.assign(this.fieldProps[name], {
+							files: [this._getFieldValueWithDefault(name, value)],
+							disabled,
+						})
 					default:
 						return Object.assign(this.fieldProps[name], {
 							value: this._getFieldValueWithDefault(name, value),
