@@ -75,7 +75,7 @@ describe('formInputProps', () => {
 			{
 				name: 'cv',
 				type: 'file',
-				value: null,
+				files: [null],
 				disabled: false,
 				onChange: expect.any(Function),
 			},
