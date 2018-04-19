@@ -98,7 +98,7 @@ const FileInputForm = ({ form }) => (
 			</label>
 		</div>
 		<div style={{ marginBottom: 10 }}>
-			<label htmlFor="cv">Select multiple files</label>
+			<label htmlFor="attachments">Select multiple files</label>
 			<label>
 				<input
 					{...form.getInputProps({
