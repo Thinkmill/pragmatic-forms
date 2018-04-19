@@ -3,8 +3,18 @@ import React from "react";
 import PropTypes from "prop-types";
 import { configureForm } from "../index";
 
+const formatFileForJSON = (file) => {
+	if (!file) return null;
+	return {
+		name: file.name,
+		lastModified: file.lastModified,
+		size: file.size,
+		type: file.type,
+	};
+}
+
 const withForm = configureForm({
-	initFields: () => ({ name: "", cv: null }),
+	initFields: () => ({ name: "", cv: null, attachments: [] }),
 	validate,
 	submit: data => {
 		// Note, with File inputs you usually want to upload your data back
@@ -34,7 +44,17 @@ const withForm = configureForm({
 		});
 	},
 	onChange: (formData, props) => {
-		props.onFormStateChange(formData);
+		// File objects don't get serialised nicely into JSON but we need
+		// to keep them in state so people can work with them.
+
+		// Make a copy so we don't mutate our state.
+		const { cv, attachments, name } = formData;
+
+		props.onFormStateChange({
+			name,
+			cv: formatFileForJSON(cv),
+			attachments: Array.from(attachments, formatFileForJSON),
+		});
 	}
 });
 
@@ -77,12 +97,31 @@ const FileInputForm = ({ form }) => (
 				/>
 			</label>
 		</div>
+		<div style={{ marginBottom: 10 }}>
+			<label htmlFor="cv">Select multiple files</label>
+			<label>
+				<input
+					{...form.getInputProps({
+						name: "attachments",
+						type: "file",
+						multiple: true,
+					})}
+				/>
+			</label>
+		</div>
 		<button type="submit" disabled={form.isLoading || form.hasErrors}>
 			Submit
 		</button>
 		<button type="reset" disabled={form.isLoading || form.hasErrors}>
 			Reset
 		</button>
+
+		<p>
+			Note that File Inputs work differently to other input types and do
+			not easily serialise as shown below. See the source of this example
+			for how to work with file inputs.
+		</p>
+
 	</form.Form>
 );
 
@@ -104,6 +143,10 @@ function validate(data) {
 
 	if (!data.cv) {
 		errors.cv = "Please select a file";
+	}
+
+	if (!data.attachments.length) {
+		errors.attachments = "Please add at lease one attachment";
 	}
 
 	return errors;
