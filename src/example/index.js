@@ -6,11 +6,13 @@ import styled, { injectGlobal } from 'styled-components';
 import JsonView from 'react-json-view'
 
 import BasicWebForm from './BasicWebForm';
+import FileInputForm from "./FileInputForm";
 import CustomComponents from './CustomComponents';
 import MyVehicles from './MyVehicles';
 
 const forms = [
 	{ component: BasicWebForm, label: 'Basic Form' },
+	{ component: FileInputForm, label: "File Input Form" },
 	{ component: CustomComponents, label: 'Custom Form Fields' },
 	{ component: MyVehicles, label: 'Nested form' },
 ];

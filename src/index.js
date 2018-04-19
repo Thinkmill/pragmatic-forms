@@ -7,6 +7,7 @@ type FieldPropOptions = {
 	type?: string,
 	value?: any,
 	checked?: boolean,
+	multiple?: boolean,
 };
 
 type FieldItemState<T> = {
@@ -208,7 +209,14 @@ export function configureForm ({
 			}
 
 			_createInputOnChange = (name: string, options: ChangeOptions) => (event: any) => {
-				this.updateField(name, event.currentTarget.value, options);
+				const field = event.currentTarget;
+				if (field.files && field.multiple) {
+					this.updateField(name, field.files, options);
+				} else if (field.files) {
+					this.updateField(name, field.files[0], options);
+				} else {
+					this.updateField(name, field.value, options);
+				}
 			};
 
 			_createCheckOnChange = (name: string, options: ChangeOptions) => (event: any) => {
@@ -224,7 +232,7 @@ export function configureForm ({
 			}
 
 			formInputProps = (options: FieldPropOptions)  => {
-				const { name, type, value, checked, ...changeOpts } = options;
+				const { name, type, value, multiple, checked, ...changeOpts } = options;
 				if (!this.fieldProps[name]) {
 					this.fieldProps[name] = {
 						name,
@@ -247,6 +255,19 @@ export function configureForm ({
 							value,
 							disabled,
 						});
+					case 'file':
+						if (multiple) {
+							return Object.assign(this.fieldProps[name], {
+								files: this._getFieldValueWithDefault(name, value),
+								multiple,
+								disabled,
+							});
+						} else {
+							return Object.assign(this.fieldProps[name], {
+								files: [this._getFieldValueWithDefault(name, value)],
+								disabled,
+							});
+						}
 					default:
 						return Object.assign(this.fieldProps[name], {
 							value: this._getFieldValueWithDefault(name, value),
