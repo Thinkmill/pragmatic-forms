@@ -115,6 +115,7 @@ The `pragmatic-forms` module exports a single named function: `configureForm`. T
 - `submit: Function`
 - `validate?: Function`
 - `onSuccess?: Function`
+- `onReset?: Function`
 - `onError?: Function`
 - `onFirstInteraction?: Function`
 
@@ -208,12 +209,19 @@ The `onSuccess` method is called after `submit` has **resolved**, the form state
 
 It receives the result of the `submit` method, `props` and `formProps` as arguments.
 
-### `onError?: Function`
+### `onError?: Function(reason, props, formProps)`
 _optional_
 
 The `onError` method is called after `submit` has **rejected**, the form state has been update and `setState` has been called.
 
 It receives the rejection reason of the `submit` method `props` and `formProps` as arguments.
+
+### `onReset?: Function(formData, props, formProps): void`
+_optional_
+
+The `onReset` method is called on a form `reset` event after the form has been reinitialised, the form state has been update and `setState` has been called.
+
+It receives the newly re-initialised `formData`, `props` and `formProps` as arguments.
 
 ### `onChange?: Function(formData, props, formProps): void`
 _optional_

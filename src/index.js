@@ -38,6 +38,7 @@ type Config = {
 	validate?: (formData: FormData, props: any, formProps: FormProps) => ErrorData,
 	onChange?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	onSuccess?: (result: any, props: any, formProps: FormProps) => mixed,
+	onReset?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 	onFirstInteraction?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 }
@@ -121,6 +122,7 @@ export function configureForm ({
 	onChange, // not defaulting this one as it could be a performance killer.
 	onSuccess = () => {},
 	onError = () => {},
+	onReset = () => {},
 	onFirstInteraction = () => {},
 }: Config) {
 
@@ -131,6 +133,7 @@ export function configureForm ({
 		onChange,
 		onSuccess,
 		onError,
+		onReset,
 		onFirstInteraction,
 	};
 
@@ -345,6 +348,9 @@ export function configureForm ({
 					submitError: undefined,
 					isLoading: false,
 					isPristine: true,
+				}, () => {
+					const formData = getFormFieldsValues(this.state.formFields);
+					config.onReset(formData, this.props, this.formProps());
 				});
 			}
 
