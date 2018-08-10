@@ -382,24 +382,6 @@ export function configureForm ({
 					getFormProps: this.formComponentProps,
 
 					Form: this.formComponent,
-
-					// Old API - Depricated
-					state: {
-						isLoading: this.state.isLoading,
-						isPristine: this.state.isPristine,
-						hasErrors,
-						errors,
-						submitError: this.state.submitError,
-						submitResult: this.state.submitResult,
-					},
-					actions: {
-						submit: this.submit,
-						onSubmit: this.handleSubmit,
-						reset: this.reset,
-						onReset: this.handleReset,
-						onInputChange: this._createInputOnChange,
-						onCheckChange: this._createCheckOnChange,
-					},
 				}
 			}
 
