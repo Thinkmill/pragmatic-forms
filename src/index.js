@@ -125,6 +125,7 @@ export function configureForm ({
 	onReset = () => {},
 	onFirstInteraction = () => {},
 	displayName = null,
+	onSubmitStopPropagation = false,
 }: Config) {
 
 	const config = {
@@ -132,6 +133,7 @@ export function configureForm ({
 		submit,
 		validate,
 		displayName,
+		onSubmitStopPropagation,
 		onChange,
 		onSuccess,
 		onError,
@@ -312,6 +314,7 @@ export function configureForm ({
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
 				const formData = getFormFieldsValues(this.state.formFields);
+				config.onSubmitStopPropagation && event && event.stopPropagation();
 				const errors = config.validate(formData, this.props, this.formProps());
 
 				if (objectHasKeys(errors)) {
