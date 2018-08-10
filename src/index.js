@@ -124,12 +124,14 @@ export function configureForm ({
 	onError = () => {},
 	onReset = () => {},
 	onFirstInteraction = () => {},
+	displayName = null,
 }: Config) {
 
 	const config = {
 		initFields,
 		submit,
 		validate,
+		displayName,
 		onChange,
 		onSuccess,
 		onError,
@@ -138,9 +140,10 @@ export function configureForm ({
 	};
 
 	return function decorator (WrappedComponent: any) {
+		const componentDisplayName = config.displayName || `PragmaticForm(${WrappedComponent.displayName || WrappedComponent.name})`;
 		return class PragmaticForm extends Component<void, State> {
 
-			static displayName = `PragmaticForm(${WrappedComponent.displayName || WrappedComponent.name})`;
+			static displayName = componentDisplayName;
 
 			state: State = {
 				formFields: {},
