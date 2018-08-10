@@ -195,6 +195,10 @@ const withForm = configureForm({
 });
 ```
 
+## Callbacks
+
+Callbacks provide a way to act on the result of an operation or event within the form. All callbacks are called with an event specific value plus the `props` passed to the form and the `formProps` object.
+
 ### `onSuccess?: Function(results, props, formProps): void`
 _optional_
 
