@@ -41,6 +41,9 @@ type Config = {
 	onReset?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 	onFirstInteraction?: (formData: FormData, props: any, formProps: FormProps) => mixed,
+	// Experimental
+	displayName?: string,
+	onSubmitStopPropagation?: boolean
 }
 
 type ChangeOptions = {
@@ -127,7 +130,7 @@ export function configureForm ({
 	onFirstInteraction,
 	// Undocumented experimental options. Use at your own risk.
 	// These may be changed or removed at any time.
-	displayName = null,
+	displayName,
 	onSubmitStopPropagation = false,
 }: Config) {
 
@@ -171,7 +174,7 @@ export function configureForm ({
 				this.state.formFields = initialiseFormFields(initialData);
 			}
 
-			getFormFieldsValues () {
+			getFormFieldsValues = () => {
 				return getFormFieldsValues(this.state.formFields);
 			}
 
