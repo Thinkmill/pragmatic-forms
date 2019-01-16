@@ -1,8 +1,8 @@
 {
-	"presets": ["react", "es2017", "es2015"],
+	"presets": ["@babel/preset-env", "@babel/preset-react", "@babel/preset-flow"],
 	"plugins": [
-		"transform-object-rest-spread",
-		"transform-class-properties",
-		"transform-runtime"
+		"@babel/plugin-proposal-class-properties",
+		"@babel/plugin-proposal-object-rest-spread",
+		"@babel/plugin-transform-runtime"
 	]
 }

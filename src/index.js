@@ -41,6 +41,9 @@ type Config = {
 	onReset?: (formData: FormData, props: any, formProps: FormProps) => mixed,
 	onError?: (result: any, props: any, formProps: FormProps) => mixed,
 	onFirstInteraction?: (formData: FormData, props: any, formProps: FormProps) => mixed,
+	// Experimental
+	displayName?: string,
+	onSubmitStopPropagation?: boolean
 }
 
 type ChangeOptions = {
@@ -119,17 +122,27 @@ export function configureForm ({
 	initFields,
 	submit,
 	validate = () => ({}),
-	onChange, // not defaulting this one as it could be a performance killer.
-	onSuccess = () => {},
-	onError = () => {},
-	onReset = () => {},
-	onFirstInteraction = () => {},
+	// Callbacks
+	onChange,
+	onSuccess,
+	onError,
+	onReset,
+	onFirstInteraction,
+	// Undocumented experimental options. Use at your own risk.
+	// These may be changed or removed at any time.
+	displayName,
+	onSubmitStopPropagation = false,
 }: Config) {
 
 	const config = {
 		initFields,
 		submit,
 		validate,
+		displayName,
+		onSubmitStopPropagation,
+	};
+
+	const callbacks = {
 		onChange,
 		onSuccess,
 		onError,
@@ -137,10 +150,13 @@ export function configureForm ({
 		onFirstInteraction,
 	};
 
+
 	return function decorator (WrappedComponent: any) {
+		const componentDisplayName = config.displayName || `PragmaticForm(${WrappedComponent.displayName || WrappedComponent.name})`;
+
 		return class PragmaticForm extends Component<void, State> {
 
-			static displayName = `PragmaticForm(${WrappedComponent.displayName || WrappedComponent.name})`;
+			static displayName = componentDisplayName;
 
 			state: State = {
 				formFields: {},
@@ -158,16 +174,26 @@ export function configureForm ({
 				this.state.formFields = initialiseFormFields(initialData);
 			}
 
+			getFormFieldsValues = () => {
+				return getFormFieldsValues(this.state.formFields);
+			}
+
 			setState (changes: { [string]: any }, callback?: Function) {
 				super.setState(changes, () => {
-					if (config && typeof config.onChange === 'function') {
-						const formData = getFormFieldsValues(this.state.formFields);
-						config.onChange(formData, this.props, this.formProps())
-					}
-					if (callback) {
-						callback();
-					}
+					this.callCallback('onChange', this.getFormFieldsValues);
+					if (callback) callback();
 				});
+			}
+
+			callCallback (name: string, value: any) {
+				if (typeof callbacks[name] === 'function') {
+					if (typeof value === 'function') {
+						// Allow lazy value resolution
+						callbacks[name](value(), this.props, this.formProps());
+					} else {
+						callbacks[name](value, this.props, this.formProps());
+					}
+				}
 			}
 
 			updateField = (
@@ -193,7 +219,7 @@ export function configureForm ({
 				}
 
 				if (isPristine) {
-					onFirstInteraction(getFormFieldsValues(formFields), this.props, this.formProps());
+					this.callCallback('onFirstInteraction', this.getFormFieldsValues);
 				}
 
 				this.setState({
@@ -308,7 +334,9 @@ export function configureForm ({
 
 			handleSubmit = async (event?: Event) => {
 				event && event.preventDefault();
-				const formData = getFormFieldsValues(this.state.formFields);
+				config.onSubmitStopPropagation && event && event.stopPropagation();
+
+				const formData = this.getFormFieldsValues();
 				const errors = config.validate(formData, this.props, this.formProps());
 
 				if (objectHasKeys(errors)) {
@@ -327,14 +355,14 @@ export function configureForm ({
 						isLoading: false,
 						submitResult: result,
 					}, () => {
-						config.onSuccess(result, this.props, this.formProps());
+						this.callCallback('onSuccess', result);
 					});
 				} catch (reason) {
 					this.setState({
 						isLoading: false,
 						submitError: reason,
 					}, () => {
-						config.onError(reason, this.props, this.formProps());
+						this.callCallback('onError', reason);
 					});
 				}
 			}
@@ -349,8 +377,8 @@ export function configureForm ({
 					isLoading: false,
 					isPristine: true,
 				}, () => {
-					const formData = getFormFieldsValues(this.state.formFields);
-					config.onReset(formData, this.props, this.formProps());
+					const formData = this.getFormFieldsValues();
+					this.callCallback('onReset', formData);
 				});
 			}
 
@@ -382,24 +410,6 @@ export function configureForm ({
 					getFormProps: this.formComponentProps,
 
 					Form: this.formComponent,
-
-					// Old API - Depricated
-					state: {
-						isLoading: this.state.isLoading,
-						isPristine: this.state.isPristine,
-						hasErrors,
-						errors,
-						submitError: this.state.submitError,
-						submitResult: this.state.submitResult,
-					},
-					actions: {
-						submit: this.submit,
-						onSubmit: this.handleSubmit,
-						reset: this.reset,
-						onReset: this.handleReset,
-						onInputChange: this._createInputOnChange,
-						onCheckChange: this._createCheckOnChange,
-					},
 				}
 			}
 

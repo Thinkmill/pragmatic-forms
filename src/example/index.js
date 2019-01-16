@@ -2,7 +2,7 @@
 // global document
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import styled, { injectGlobal } from 'styled-components';
+import styled from 'styled-components';
 import JsonView from 'react-json-view'
 
 import BasicWebForm from './BasicWebForm';
@@ -36,21 +36,18 @@ const Buttons = ({ list, selectedIndex, onSelect }: ButtonsProps) => (
 	</div>
 );
 
-injectGlobal`
-	body {
-		font-family: 'Helvetica Neue', helvetica, Arial, sans-serif;
-		font-size: 16px;
-	}
+const Main = styled.div`
+	background: #fefefe;
+	padding: 4vw;
+
+	font-family: 'Helvetica Neue', helvetica, Arial, sans-serif;
+	font-size: 16px;
+
 	pre {
 		overflow: auto;
 		padding: 2vw;
 		background: #efefef;
 	}
-`;
-
-const Main = styled.div`
-	background: #fefefe;
-	padding: 4vw;
 `
 
 type State = {

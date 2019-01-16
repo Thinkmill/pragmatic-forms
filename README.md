@@ -48,7 +48,7 @@ A pragmatic approach to forms in React (Web and Native)
 - be un-magical
 - be performant
 - be just react (and modern JS)
-- work with YOUR state management library
+- work with YOUR state management system
 - work in browser and react-native
 
 # Example usage
@@ -92,13 +92,6 @@ const RegistrationForm = configureForm({
 	</form.Form>
 ));
 ```
-
-# The Road to release
-
-- [ ] Track input focus in internal state (field.hasFocus)
-- [ ] Test with and create examples for React Native
-- [x] Export form props like field props ie. `form.getFormProps()`
-- [x] Export a `Form` component which can be used in place of `<form />` and doesn't require setting up props.
 
 # API Documentation
 
@@ -202,6 +195,10 @@ const withForm = configureForm({
 });
 ```
 
+## Callbacks
+
+Callbacks provide a way to act on the result of an operation or event within the form. All callbacks are called with an event specific value plus the `props` passed to the form and the `formProps` object.
+
 ### `onSuccess?: Function(results, props, formProps): void`
 _optional_
 
@@ -256,7 +253,7 @@ The `form` prop provides access to the `state` and `methods` provided by `pragma
 
 ### `form.submitResult: any`
 
-`submitResult` is populated with the resolve value (if any) if the form submit Promise us `resolved`.
+`submitResult` is populated with the resolved value (if any) once the forms submit Promise has `resolved`.
 
 ### `form.errors: { [fieldName: string]: any }`
 
@@ -382,28 +379,6 @@ In addition to the props provided by `form.getInputProps` this method also retur
  - `error?: string` Either a string error message or `null` if there is no error.
  - `isDirty: boolean` `true` when the field has been modified.
  - `onValueChange: (value: any) =>` a special change handler which accepts the value directly rather than via a change event.
-
-### `state` (Deprecated)
-
-> `state` has been deprecated in favour of having all props available on the top level `form` object.
-
-Contains the form state fields defined above
- - `isLoading`
- - `isPristine`
- - `hasErrors`
- - `errors`
- - `submitError`
- - `submitResult`
-
-### `actions` (Deprecated)
-
-> `actions` has been deprecated in favour of having all props available on the top level `form` object.
-
-Contains the following form `methods` and `event handlers` defined above:
- - `submit`
- - `onSubmit`
- - `reset`
- - `onReset`
 
 # Build and release
 
